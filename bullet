@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bullet Dodge - Endless Stages</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d0d13;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        canvas {
+            background-color: #161622;
+            border: 2px solid #00ffcc;
+            display: block;
+        }
+
+        /* Screen Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 10, 16, 0.92);
+            color: white;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 36px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+            text-align: center;
+        }
+
+        p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #ccc;
+        }
+
+        .btn {
+            margin: 8px;
+            padding: 10px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #00ffcc;
+            color: #111;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #ffffff;
+            box-shadow: 0 0 15px #00ffcc;
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            background-color: #444;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: #ff0055;
+            color: #fff;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #ff3377;
+            box-shadow: 0 0 15px #ff0055;
+        }
+
+        .btn-danger {
+            background-color: #660011;
+            color: #ff6666;
+            border: 1px solid #ff0055;
+            font-size: 12px;
+            padding: 6px 14px;
+            margin-top: 15px;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 10px #ff0055;
+        }
+
+        /* Top HUD */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .hud-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .money-text {
+            color: #ffd700;
+        }
+
+        #audio-toggle {
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Stage Select Container */
+        .stage-container {
+            width: 90%;
+            max-height: 380px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding-right: 5px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stage-card {
+            background: #1f1f2e;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stage-card:hover:not(.locked) {
+            border-color: #00ffcc;
+            box-shadow: 0 0 12px rgba(0, 255, 204, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .stage-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #444;
+        }
+
+        .stage-card h3 {
+            margin: 0 0 5px 0;
+            color: #00ffcc;
+            font-size: 16px;
+        }
+
+        /* Shop Grid */
+        .shop-container {
+            width: 90%;
+            max-height: 380px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding-right: 5px;
+        }
+
+        .shop-item {
+            background: #1a1a26;
+            border: 1px solid #00ffcc33;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item-info {
+            text-align: left;
+        }
+
+        .shop-item-info h4 {
+            margin: 0 0 4px 0;
+            color: #00ffcc;
+            font-size: 16px;
+        }
+
+        .shop-item-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .controls-hint {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Confirmation Box */
+        .confirm-box {
+            background: #161622;
+            border: 2px solid #ff0055;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+        }
+
+        .confirm-box h2 {
+            color: #ff0055;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        
+        <!-- IN-GAME HUD -->
+        <div id="hud">
+            <div class="hud-left">
+                <div id="stage-display">Stage: 1</div>
+                <button id="audio-toggle">🔊 Mute</button>
+            </div>
+            <div class="money-text" id="hud-money">$: 0</div>
+        </div>
+
+        <!-- MAIN MENU -->
+        <div id="main-menu" class="overlay">
+            <h1>BULLET DODGE</h1>
+            <p>Infinite procedurally generated stage progression!</p>
+            <p class="money-text" id="menu-money" style="font-size: 20px; margin: 10px 0;">Total Money: $0</p>
+            
+            <div class="nav-buttons">
+                <button class="btn" id="btn-to-stages">STAGE SELECT</button>
+                <button class="btn btn-secondary" id="btn-to-shop">SHOP</button>
+            </div>
+            
+            <button class="btn btn-danger" id="btn-reset-data">RESET GAME DATA</button>
+            <p class="controls-hint">Move: <b>WASD</b> or <b>Arrow Keys</b> | Auto-Shooting Enabled</p>
+        </div>
+
+        <!-- RESET CONFIRMATION OVERLAY -->
+        <div id="reset-menu" class="overlay hidden">
+            <div class="confirm-box">
+                <h2 id="reset-step-title">WARNING!</h2>
+                <p id="reset-step-desc">Are you sure you want to reset all game data?</p>
+                <div class="nav-buttons" style="justify-content: center; margin-top: 15px;">
+                    <button class="btn btn-secondary" id="btn-reset-confirm">YES</button>
+                    <button class="btn" id="btn-reset-cancel">CANCEL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAGE SELECT MENU -->
+        <div id="stage-menu" class="overlay hidden">
+            <h1>SELECT STAGE</h1>
+            <div class="stage-container" id="stage-container"></div>
+            <button class="btn btn-secondary" id="btn-stage-back">BACK</button>
+        </div>
+
+        <!-- SHOP MENU -->
+        <div id="shop-menu" class="overlay hidden">
+            <h1>UPGRADE SHOP</h1>
+            <p class="money-text" id="shop-money" style="font-size: 18px;">Money: $0</p>
+            
+            <div class="shop-container" id="shop-container"></div>
+            
+            <button class="btn btn-secondary" id="btn-shop-back">BACK</button>
+        </div>
+
+        <!-- GAME OVER / VICTORY OVERLAY -->
+        <div id="result-menu" class="overlay hidden">
+            <h1 id="result-title">VICTORY!</h1>
+            <p id="result-desc"></p>
+            <p class="money-text" id="result-reward"></p>
+            
+            <div class="nav-buttons" style="margin-top: 15px;">
+                <button class="btn" id="btn-next-stage">NEXT STAGE</button>
+                <button class="btn" id="btn-retry">RETRY</button>
+                <button class="btn btn-secondary" id="btn-result-stages">STAGES</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // DOM Elements
+        const mainMenu = document.getElementById('main-menu');
+        const stageMenu = document.getElementById('stage-menu');
+        const shopMenu = document.getElementById('shop-menu');
+        const resultMenu = document.getElementById('result-menu');
+        const resetMenu = document.getElementById('reset-menu');
+
+        const resetTitle = document.getElementById('reset-step-title');
+        const resetDesc = document.getElementById('reset-step-desc');
+        const btnResetConfirm = document.getElementById('btn-reset-confirm');
+        const btnResetCancel = document.getElementById('btn-reset-cancel');
+
+        const hudMoney = document.getElementById('hud-money');
+        const menuMoney = document.getElementById('menu-money');
+        const shopMoney = document.getElementById('shop-money');
+        const hudStage = document.getElementById('stage-display');
+        const audioToggleBtn = document.getElementById('audio-toggle');
+
+        const stageContainer = document.getElementById('stage-container');
+        const shopContainer = document.getElementById('shop-container');
+        const btnNextStage = document.getElementById('btn-next-stage');
+
+        // AUDIO ENGINE
+        let audioCtx = null;
+        let isMuted = false;
+        let bgmTimer = null;
+        let bgmNoteIndex = 0;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (isMuted || !audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            if (type === 'playerShoot') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+
+            } else if (type === 'enemyShoot') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+
+            } else if (type === 'hitEnemy') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.05);
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+
+            } else if (type === 'hitPlayer') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+
+            } else if (type === 'buy') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(880, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+
+            } else if (type === 'win') {
+                const notes = [261.63, 329.63, 392.00, 523.25];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.2);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.1);
+                    osc.stop(now + idx * 0.1 + 0.2);
+                });
+
+            } else if (type === 'lose') {
+                const notes = [200, 175, 150, 110];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.15 + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.15);
+                    osc.stop(now + idx * 0.15 + 0.25);
+                });
+            }
+        }
+
+        const bgmBassline = [110, 110, 130, 110, 98, 98, 110, 87];
+        const bgmLeadNotes = [220, 0, 261.63, 220, 293.66, 0, 261.63, 196];
+
+        function startBGM() {
+            stopBGM();
+            bgmNoteIndex = 0;
+            bgmTimer = setInterval(() => {
+                if (isMuted || !audioCtx || !isRunning) return;
+
+                const now = audioCtx.currentTime;
+
+                const bassFreq = bgmBassline[bgmNoteIndex % bgmBassline.length];
+                const bassOsc = audioCtx.createOscillator();
+                const bassGain = audioCtx.createGain();
+                bassOsc.type = 'sawtooth';
+                bassOsc.frequency.setValueAtTime(bassFreq, now);
+                bassGain.gain.setValueAtTime(0.04, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.005, now + 0.18);
+                bassOsc.connect(bassGain);
+                bassGain.connect(audioCtx.destination);
+                bassOsc.start(now);
+                bassOsc.stop(now + 0.18);
+
+                const leadFreq = bgmLeadNotes[bgmNoteIndex % bgmLeadNotes.length];
+                if (leadFreq > 0) {
+                    const leadOsc = audioCtx.createOscillator();
+                    const leadGain = audioCtx.createGain();
+                    leadOsc.type = 'square';
+                    leadOsc.frequency.setValueAtTime(leadFreq, now);
+                    leadGain.gain.setValueAtTime(0.02, now);
+                    leadGain.gain.exponentialRampToValueAtTime(0.003, now + 0.15);
+                    leadOsc.connect(leadGain);
+                    leadGain.connect(audioCtx.destination);
+                    leadOsc.start(now);
+                    leadOsc.stop(now + 0.15);
+                }
+
+                bgmNoteIndex++;
+            }, 180);
+        }
+
+        function stopBGM() {
+            if (bgmTimer) {
+                clearInterval(bgmTimer);
+                bgmTimer = null;
+            }
+        }
+
+        audioToggleBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            audioToggleBtn.textContent = isMuted ? '🔇 Muted' : '🔊 Mute';
+        });
+
+        window.addEventListener('click', initAudio, { once: true });
+        window.addEventListener('keydown', initAudio, { once: true });
+
+        // SAVE DATA STRUCTURE
+        const defaultSaveData = {
+            money: 0,
+            unlockedStage: 1,
+            upgrades: {
+                bulletNum: 1,
+                fireRate: 1,
+                damage: 1,
+                health: 1,
+                speed: 1
+            }
+        };
+
+        let saveData = JSON.parse(localStorage.getItem('dodge_shooter_save')) || JSON.parse(JSON.stringify(defaultSaveData));
+
+        function saveGame() {
+            localStorage.setItem('dodge_shooter_save', JSON.stringify(saveData));
+            updateMoneyDisplays();
+        }
+
+        function updateMoneyDisplays() {
+            hudMoney.textContent = `$: ${saveData.money}`;
+            menuMoney.textContent = `Total Money: $${saveData.money}`;
+            shopMoney.textContent = `Money: $${saveData.money}`;
+        }
+
+        // TRIPLE CONFIRMATION SYSTEM
+        let resetStep = 0;
+        const resetSteps = [
+            {
+                title: "WARNING! (1/3)",
+                desc: "Are you sure you want to reset all game data? This cannot be undone.",
+                btnText: "CONFIRM"
+            },
+            {
+                title: "ARE YOU SURE? (2/3)",
+                desc: "You will lose ALL money, upgrade levels, and unlocked stages!",
+                btnText: "YES, CONTINUE"
+            },
+            {
+                title: "FINAL WARNING! (3/3)",
+                desc: "Clicking confirm will permanently delete your saved game progress!",
+                btnText: "DELETE EVERYTHING"
+            }
+        ];
+
+        function showResetStep(step) {
+            resetStep = step;
+            if (resetStep < resetSteps.length) {
+                const info = resetSteps[resetStep];
+                resetTitle.textContent = info.title;
+                resetDesc.textContent = info.desc;
+                btnResetConfirm.textContent = info.btnText;
+                resetMenu.classList.remove('hidden');
+            } else {
+                performDataReset();
+            }
+        }
+
+        function performDataReset() {
+            localStorage.removeItem('dodge_shooter_save');
+            saveData = JSON.parse(JSON.stringify(defaultSaveData));
+            saveGame();
+            resetMenu.classList.add('hidden');
+            alert("Game data has been completely reset.");
+        }
+
+        document.getElementById('btn-reset-data').addEventListener('click', () => {
+            showResetStep(0);
+        });
+
+        btnResetConfirm.addEventListener('click', () => {
+            showResetStep(resetStep + 1);
+        });
+
+        btnResetCancel.addEventListener('click', () => {
+            resetMenu.classList.add('hidden');
+            resetStep = 0;
+        });
+
+        // INFINITE DYNAMIC STAGE GENERATOR
+        function generateStage(stageNum) {
+            const fireInterval = Math.max(150, 700 - (stageNum - 1) * 45);
+
+            let moveSpeed = 0;
+            if (stageNum >= 4) {
+                moveSpeed = 60 + Math.min(180, (stageNum - 4) * 20);
+            }
+
+            return {
+                id: stageNum,
+                name: `Stage ${stageNum}`,
+                hp: Math.floor(350 + Math.pow(stageNum, 1.45) * 120),
+                reward: Math.floor(80 + Math.pow(stageNum, 1.3) * 35),
+                bulletCount: Math.min(36, 8 + Math.floor(stageNum * 1.5)),
+                fireInterval: fireInterval,
+                speedMult: 1.0 + Math.min(2.5, (stageNum - 1) * 0.08),
+                moveSpeed: moveSpeed
+            };
+        }
+
+        // UPGRADE CONFIGURATIONS
+        const UPGRADES = [
+            {
+                id: 'bulletNum',
+                name: 'Bullet Count',
+                desc: 'Add extra parallel bullets per shot',
+                maxLevel: 10,
+                baseCost: 150,
+                costMult: 2.0,
+                getValue: (lvl) => `${lvl} Bullet(s)`
+            },
+            {
+                id: 'fireRate',
+                name: 'Fire Rate',
+                desc: 'Increase shooting frequency',
+                maxLevel: 10,
+                baseCost: 100,
+                costMult: 1.7,
+                getValue: (lvl) => `${(1000 / (220 - (lvl - 1) * 16)).toFixed(1)} shots/sec`
+            },
+            {
+                id: 'damage',
+                name: 'Bullet Damage',
+                desc: 'Increase damage dealt per bullet',
+                maxLevel: 10,
+                baseCost: 120,
+                costMult: 1.8,
+                getValue: (lvl) => `${4 + (lvl - 1) * 4} Dmg`
+            },
+            {
+                id: 'health',
+                name: 'Max Health',
+                desc: 'Increase player max hit points',
+                maxLevel: 10,
+                baseCost: 80,
+                costMult: 1.6,
+                getValue: (lvl) => `${80 + (lvl - 1) * 35} HP`
+            },
+            {
+                id: 'speed',
+                name: 'Move Speed',
+                desc: 'Enhance movement speed',
+                maxLevel: 10,
+                baseCost: 90,
+                costMult: 1.5,
+                getValue: (lvl) => `${240 + (lvl - 1) * 25} Speed`
+            }
+        ];
+
+        // GAME RUNTIME VARIABLES
+        let isRunning = false;
+        let currentStageObj = generateStage(1);
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let playerShootTimer = 0;
+        let enemyBullets = [];
+        let playerBullets = [];
+
+        // INPUT LISTENERS
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        // ENTITIES
+        const player = {
+            x: 300,
+            y: 480,
+            radius: 14,
+            speed: 260,
+            hp: 100,
+            maxHp: 100,
+            damage: 5,
+            color: '#00ffcc',
+
+            initStats() {
+                const up = saveData.upgrades;
+                this.maxHp = 80 + (up.health - 1) * 35;
+                this.hp = this.maxHp;
+                this.speed = 240 + (up.speed - 1) * 25;
+                this.damage = 4 + (up.damage - 1) * 4;
+            },
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.closePath();
+                ctx.shadowBlur = 0;
+
+                const barWidth = 40;
+                const barHeight = 6;
+                const hpPercent = Math.max(0, this.hp / this.maxHp);
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x - barWidth / 2, this.y + this.radius + 6, barWidth, barHeight);
+                ctx.fillStyle = '#00ffcc';
+                ctx.fillRect(this.x - barWidth / 2, this.y + this.radius + 6, barWidth * hpPercent, barHeight);
+            },
+
+            update(deltaTime) {
+                let dx = 0;
+                let dy = 0;
+
+                if (keys['ArrowUp'] || keys['w'] || keys['W']) dy -= 1;
+                if (keys['ArrowDown'] || keys['s'] || keys['S']) dy += 1;
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx -= 1;
+                if (keys['ArrowRight'] || keys['d'] || keys['D']) dx += 1;
+
+                if (dx !== 0 && dy !== 0) {
+                    dx *= 0.7071;
+                    dy *= 0.7071;
+                }
+
+                this.x += dx * this.speed * deltaTime;
+                this.y += dy * this.speed * deltaTime;
+
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+        };
+
+        const enemy = {
+            x: 300,
+            y: 100,
+            radius: 22,
+            hp: 400,
+            maxHp: 400,
+            color: '#ff0055',
+            moveSpeed: 0,
+            moveDirection: 1,
+
+            initStage(stage) {
+                this.maxHp = stage.hp;
+                this.hp = stage.hp;
+                this.moveSpeed = stage.moveSpeed;
+                this.moveDirection = 1;
+            },
+
+            update(deltaTime) {
+                if (this.moveSpeed > 0) {
+                    this.x += this.moveDirection * this.moveSpeed * deltaTime;
+                    const padding = this.radius + 20;
+
+                    if (this.x >= canvas.width - padding) {
+                        this.x = canvas.width - padding;
+                        this.moveDirection = -1;
+                    } else if (this.x <= padding) {
+                        this.x = padding;
+                        this.moveDirection = 1;
+                    }
+                }
+            },
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.closePath();
+                ctx.shadowBlur = 0;
+
+                const barWidth = 260;
+                const barHeight = 12;
+                const hpPercent = Math.max(0, this.hp / this.maxHp);
+                const barX = (canvas.width - barWidth) / 2;
+                const barY = 20;
+
+                ctx.fillStyle = '#333';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+                ctx.fillStyle = '#ff0055';
+                ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(barX, barY, barWidth, barHeight);
+            }
+        };
+
+        class Bullet {
+            constructor(x, y, vx, vy, radius, color, damage = 0) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.radius = radius;
+                this.color = color;
+                this.damage = damage;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            update(deltaTime) {
+                this.x += this.vx * deltaTime;
+                this.y += this.vy * deltaTime;
+            }
+
+            isOutOfBounds() {
+                return (
+                    this.x < -15 ||
+                    this.x > canvas.width + 15 ||
+                    this.y < -15 ||
+                    this.y > canvas.height + 15
+                );
+            }
+        }
+
+        // BULLET SPAWNING
+        function spawnEnemyBullets() {
+            const count = currentStageObj.bulletCount;
+            const baseSpeed = 140 * currentStageObj.speedMult;
+            const angleStep = (Math.PI * 2) / count;
+            const offsetAngle = Math.random() * Math.PI;
+
+            for (let i = 0; i < count; i++) {
+                const angle = i * angleStep + offsetAngle;
+                const vx = Math.cos(angle) * baseSpeed;
+                const vy = Math.sin(angle) * baseSpeed;
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, vx, vy, 9, '#ff0055'));
+            }
+            playSound('enemyShoot');
+        }
+
+        function spawnPlayerBullets() {
+            const bulletCount = saveData.upgrades.bulletNum;
+            const speed = 550;
+            const spacing = 12;
+
+            const startX = player.x - ((bulletCount - 1) * spacing) / 2;
+
+            for (let i = 0; i < bulletCount; i++) {
+                const xPos = startX + i * spacing;
+                playerBullets.push(new Bullet(xPos, player.y - player.radius, 0, -speed, 4, '#00ffcc', player.damage));
+            }
+            playSound('playerShoot');
+        }
+
+        function checkCollision(c1, c2) {
+            const dx = c1.x - c2.x;
+            const dy = c1.y - c2.y;
+            return Math.sqrt(dx * dx + dy * dy) < (c1.radius + c2.radius);
+        }
+
+        function renderStageSelect() {
+            stageContainer.innerHTML = '';
+            const totalToShow = saveData.unlockedStage + 1;
+
+            for (let i = 1; i <= totalToShow; i++) {
+                const isUnlocked = i <= saveData.unlockedStage;
+                const stageData = generateStage(i);
+
+                const card = document.createElement('div');
+                card.className = `stage-card ${isUnlocked ? '' : 'locked'}`;
+                
+                card.innerHTML = `
+                    <h3>${stageData.name}</h3>
+                    <p>Reward: <span class="money-text">$${stageData.reward}</span></p>
+                    <p style="font-size: 11px; color: ${isUnlocked ? '#888' : '#ff4444'}; margin-top: 5px;">
+                        ${isUnlocked ? 'AVAILABLE' : 'LOCKED'}
+                    </p>
+                `;
+
+                if (isUnlocked) {
+                    card.addEventListener('click', () => {
+                        startStage(stageData);
+                    });
+                }
+
+                stageContainer.appendChild(card);
+            }
+        }
+
+        function renderShop() {
+            shopContainer.innerHTML = '';
+            UPGRADES.forEach(up => {
+                const currentLvl = saveData.upgrades[up.id];
+                const isMax = currentLvl >= up.maxLevel;
+                const cost = Math.floor(up.baseCost * Math.pow(up.costMult, currentLvl - 1));
+
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.innerHTML = `
+                    <div class="shop-item-info">
+                        <h4>${up.name} (Lvl ${currentLvl}/${up.maxLevel})</h4>
+                        <p>${up.desc} | <b>Current: ${up.getValue(currentLvl)}</b></p>
+                    </div>
+                    <button class="btn" ${isMax || saveData.money < cost ? 'disabled' : ''}>
+                        ${isMax ? 'MAX' : `Buy ($${cost})`}
+                    </button>
+                `;
+
+                const btn = item.querySelector('button');
+                if (!isMax) {
+                    btn.addEventListener('click', () => {
+                        if (saveData.money >= cost) {
+                            saveData.money -= cost;
+                            saveData.upgrades[up.id]++;
+                            saveGame();
+                            playSound('buy');
+                            renderShop();
+                        }
+                    });
+                }
+
+                shopContainer.appendChild(item);
+            });
+        }
+
+        function startStage(stageObj) {
+            initAudio();
+            currentStageObj = stageObj;
+            hudStage.textContent = `Stage: ${stageObj.id}`;
+            
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2 + 100;
+            player.initStats();
+
+            enemy.x = canvas.width / 2;
+            enemy.y = 100;
+            enemy.initStage(stageObj);
+
+            enemyBullets = [];
+            playerBullets = [];
+            spawnTimer = 0;
+            playerShootTimer = 0;
+
+            mainMenu.classList.add('hidden');
+            stageMenu.classList.add('hidden');
+            shopMenu.classList.add('hidden');
+            resultMenu.classList.add('hidden');
+            resetMenu.classList.add('hidden');
+
+            isRunning = true;
+            lastTime = 0;
+
+            startBGM();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver(win) {
+            isRunning = false;
+            stopBGM();
+            
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+            const resultReward = document.getElementById('result-reward');
+
+            if (win) {
+                playSound('win');
+                resultTitle.textContent = "STAGE CLEAR!";
+                resultTitle.style.color = "#00ffcc";
+                resultDesc.textContent = `You cleared Stage ${currentStageObj.id}!`;
+                resultReward.textContent = `Earned Reward: +$${currentStageObj.reward}`;
+
+                saveData.money += currentStageObj.reward;
+                if (currentStageObj.id === saveData.unlockedStage) {
+                    saveData.unlockedStage++;
+                }
+                saveGame();
+                btnNextStage.classList.remove('hidden');
+            } else {
+                playSound('lose');
+                resultTitle.textContent = "DEFEATED";
+                resultTitle.style.color = "#ff0055";
+                resultDesc.textContent = `Your ship was destroyed on Stage ${currentStageObj.id}.`;
+                resultReward.textContent = "Earned Reward: $0";
+                btnNextStage.classList.add('hidden');
+            }
+
+            resultMenu.classList.remove('hidden');
+        }
+
+        function gameLoop(timestamp) {
+            if (!isRunning) return;
+
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            spawnTimer += deltaTime * 1000;
+            playerShootTimer += deltaTime * 1000;
+
+            const playerInterval = 220 - (saveData.upgrades.fireRate - 1) * 16;
+
+            if (spawnTimer >= currentStageObj.fireInterval) {
+                spawnEnemyBullets();
+                spawnTimer = 0;
+            }
+
+            if (playerShootTimer >= playerInterval) {
+                spawnPlayerBullets();
+                playerShootTimer = 0;
+            }
+
+            player.update(deltaTime);
+            enemy.update(deltaTime);
+
+            // Enemy Bullets vs Player Collision
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                enemyBullets[i].update(deltaTime);
+
+                if (checkCollision(player, enemyBullets[i])) {
+                    player.hp -= 15;
+                    playSound('hitPlayer');
+                    enemyBullets.splice(i, 1);
+
+                    if (player.hp <= 0) {
+                        player.hp = 0;
+                        gameOver(false);
+                        return;
+                    }
+                    continue;
+                }
+
+                if (enemyBullets[i].isOutOfBounds()) {
+                    enemyBullets.splice(i, 1);
+                }
+            }
+
+            // Player Bullets vs Enemy Collision
+            for (let i = playerBullets.length - 1; i >= 0; i--) {
+                playerBullets[i].update(deltaTime);
+
+                if (checkCollision(enemy, playerBullets[i])) {
+                    enemy.hp -= playerBullets[i].damage;
+                    playSound('hitEnemy');
+                    playerBullets.splice(i, 1);
+
+                    if (enemy.hp <= 0) {
+                        enemy.hp = 0;
+                        gameOver(true);
+                        return;
+                    }
+                    continue;
+                }
+
+                if (playerBullets[i].isOutOfBounds()) {
+                    playerBullets.splice(i, 1);
+                }
+            }
+
+            // Rendering
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#1d1d2b';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            enemy.draw();
+            player.draw();
+            enemyBullets.forEach(b => b.draw());
+            playerBullets.forEach(b => b.draw());
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // EVENT LISTENERS FOR UI NAVIGATION
+        document.getElementById('btn-to-stages').addEventListener('click', () => {
+            renderStageSelect();
+            mainMenu.classList.add('hidden');
+            stageMenu.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-to-shop').addEventListener('click', () => {
+            renderShop();
+            mainMenu.classList.add('hidden');
+            shopMenu.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-stage-back').addEventListener('click', () => {
+            stageMenu.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-shop-back').addEventListener('click', () => {
+            shopMenu.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-next-stage').addEventListener('click', () => {
+            const nextStageData = generateStage(currentStageObj.id + 1);
+            startStage(nextStageData);
+        });
+
+        document.getElementById('btn-retry').addEventListener('click', () => {
+            startStage(currentStageObj);
+        });
+
+        document.getElementById('btn-result-stages').addEventListener('click', () => {
+            renderStageSelect();
+            resultMenu.classList.add('hidden');
+            stageMenu.classList.remove('hidden');
+        });
+
+        // INIT
+        saveGame();
+    </script>
+</body>
+</html>
