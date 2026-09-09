@@ -52,12 +52,26 @@
         .died { color: #aa0000; text-shadow: 0 0 25px rgba(255, 0, 0, 0.9); }
         .felled { color: #e2c381; text-shadow: 0 0 30px rgba(212, 175, 55, 0.95); }
         #lock-on-marker { position: absolute; width: 30px; height: 30px; border: 2px solid #ffffff; transform: translate(-50%, -50%) rotate(45deg); display: none; pointer-events: none; box-shadow: 0 0 12px #ffffff; border-radius: 4px; opacity: 0.85; }
-        #start-screen { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(20,24,36,0.92) 0%, rgba(5,6,10,0.97) 70%); pointer-events: auto; color: #e8e4d8; padding: 24px; }
+        #start-screen { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(20,24,36,0.92) 0%, rgba(5,6,10,0.97) 70%); pointer-events: auto; color: #e8e4d8; padding: 24px; overflow-y: auto; }
         #start-screen.hidden { display: none; }
         #start-screen h1 { color: #d4af37; letter-spacing: 0.35em; font-size: clamp(22px, 4vw, 36px); text-shadow: 0 0 24px rgba(212,175,55,0.5); margin-bottom: 8px; }
-        #start-screen .sub { color: #9aa3b5; margin-bottom: 22px; font-size: 14px; }
+        #start-screen .sub { color: #9aa3b5; margin-bottom: 18px; font-size: 14px; }
+        .menu-panel { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 900px; }
+        .menu-panel.active { display: flex; }
+        .boss-grid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-bottom: 16px; }
+        .boss-card { width: 240px; text-align: left; padding: 16px; border: 1px solid #555; background: rgba(12,14,20,0.92); color: #d0d5e0; cursor: pointer; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+        .boss-card:hover:not(.locked) { border-color: #d4af37; }
+        .boss-card.selected { border-color: #d4af37; box-shadow: 0 0 18px rgba(212,175,55,0.35); }
+        .boss-card.locked { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.6); }
+        .boss-card .bname { color: #d4af37; font-size: 16px; letter-spacing: 2px; margin-bottom: 6px; }
+        .boss-card .bdesc { font-size: 12px; color: #9aa3b5; line-height: 1.45; }
+        .boss-card .block { font-size: 11px; color: #ff8866; margin-top: 8px; }
+        .menu-nav { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+        .menu-btn { padding: 12px 28px; border: 1px solid #d4af37; background: rgba(212,175,55,0.12); color: #d4af37; font-size: 15px; letter-spacing: 3px; cursor: pointer; font-family: inherit; }
+        .menu-btn:hover { background: rgba(212,175,55,0.28); }
+        .menu-btn.secondary { border-color: #666; color: #aaa; background: transparent; }
         .weapon-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 720px; margin-bottom: 18px; }
-        .weapon-card { width: 200px; text-align: left; padding: 14px 16px; border: 1px solid #555; background: rgba(12,14,20,0.9); color: #d0d5e0; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; }
+        .weapon-card { width: 190px; text-align: left; padding: 14px 16px; border: 1px solid #555; background: rgba(12,14,20,0.9); color: #d0d5e0; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; }
         .weapon-card:hover { border-color: #d4af37; }
         .weapon-card.selected { border-color: #d4af37; box-shadow: 0 0 18px rgba(212,175,55,0.35); background: rgba(30,28,18,0.95); }
         .weapon-card .wname { color: #d4af37; font-size: 16px; letter-spacing: 2px; margin-bottom: 6px; }
@@ -542,26 +556,51 @@
     <div id="lock-on-marker"></div>
 
     <div id="start-screen">
-        <h1>ABYSSAL SOVEREIGN</h1>
-        <div class="sub">選擇武器，然後進入戰鬥</div>
-        <div class="weapon-grid" id="weapon-grid">
-            <button type="button" class="weapon-card selected" data-weapon="longsword">
-                <div class="wname">騎士長劍</div>
-                <div class="wdesc">均衡：盾防／彈反<br>Q 劍氣　E 突進</div>
-            </button>
-            <button type="button" class="weapon-card" data-weapon="katana">
-                <div class="wname">太刀</div>
-                <div class="wdesc">中速・狩人斬擊模組<br>Q 見切　E 登龍　Shift 防反居合</div>
-            </button>
-            <button type="button" class="weapon-card" data-weapon="dagger">
-                <div class="wname">匕首</div>
-                <div class="wdesc">極速連擊<br>Q 割喉流血　E 分身手裏劍　Shift 雷閃</div>
-            </button>
+        <div class="menu-panel active" id="panel-title">
+            <h1>ABYSSAL SOVEREIGN</h1>
+            <div class="sub">深淵王座・三連試煉</div>
+            <div class="menu-nav">
+                <button type="button" class="menu-btn" id="btn-to-weapon">開始遊戲</button>
+            </div>
+            <div id="controls-hint" style="margin-top:20px;font-size:12px;color:#7a8499;text-align:center;line-height:1.6;">
+                WASD 移動　左鍵輕攻擊　右鍵重擊／蓄力<br>
+                空白翻滾　Shift 戰技／防反　Q／E 技能　F 原素瓶　Tab 鎖定
+            </div>
         </div>
-        <button type="button" id="btn-start">進入戰鬥</button>
-        <div id="controls-hint">
-            左鍵 輕攻擊　右鍵 重擊　Q 劍氣　E 突進　F 原素瓶<br>
-            空白 翻滾　Shift 彈反/格擋　Tab 鎖定　WASD 移動
+        <div class="menu-panel" id="panel-weapon">
+            <h1>選擇武器</h1>
+            <div class="sub">防禦力：大劍 &gt; 騎士 &gt; 太刀 &gt; 匕首</div>
+            <div class="weapon-grid" id="weapon-grid">
+                <button type="button" class="weapon-card selected" data-weapon="longsword">
+                    <div class="wname">騎士長劍</div>
+                    <div class="wdesc">中高防禦・盾防彈反<br>均衡攻速與傷害</div>
+                </button>
+                <button type="button" class="weapon-card" data-weapon="katana">
+                    <div class="wname">太刀</div>
+                    <div class="wdesc">中等防禦・見切／登龍<br>中速狩人斬擊</div>
+                </button>
+                <button type="button" class="weapon-card" data-weapon="dagger">
+                    <div class="wname">匕首</div>
+                    <div class="wdesc">低防禦・極速連擊<br>流血／分身／雷閃</div>
+                </button>
+                <button type="button" class="weapon-card" data-weapon="greatsword">
+                    <div class="wname">大劍</div>
+                    <div class="wdesc">最高防禦・真蓄力<br>上撈斬擊暈</div>
+                </button>
+            </div>
+            <div class="menu-nav">
+                <button type="button" class="menu-btn secondary" id="btn-back-title">返回</button>
+                <button type="button" class="menu-btn" id="btn-to-boss">下一步：選擇 Boss</button>
+            </div>
+        </div>
+        <div class="menu-panel" id="panel-boss">
+            <h1>選擇試煉</h1>
+            <div class="sub">通關前一關後解鎖下一 Boss</div>
+            <div class="boss-grid" id="boss-grid"></div>
+            <div class="menu-nav">
+                <button type="button" class="menu-btn secondary" id="btn-back-weapon">返回</button>
+                <button type="button" class="menu-btn" id="btn-start">進入戰鬥</button>
+            </div>
         </div>
     </div>
     <div id="touch-bar">
@@ -572,7 +611,15 @@
         <button type="button" data-act="e">E</button>
     </div>
 
-    <div id="end-screen"><div class="end-title" id="end-title">YOU DIED</div></div>
+    <div id="end-screen">
+        <div style="text-align:center;">
+            <div class="end-title" id="end-title">YOU DIED</div>
+            <div class="menu-nav" style="margin-top:28px;">
+                <button type="button" class="menu-btn" id="btn-retry" tabindex="-1">重試</button>
+                <button type="button" class="menu-btn secondary" id="btn-return-menu" tabindex="-1">返回主選單</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         /* --- 1. 3D 場景 & 哥德環境佈置 --- */
@@ -619,7 +666,7 @@
         /* --- 2. 豐富的場景建築：斷柱、廢墟、王座與雜物 --- */
         const templeGroup = new THREE.Group(); scene.add(templeGroup);
         const floorGeo = new THREE.PlaneGeometry(140, 160, 40, 40);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x1c2230, roughness: 0.72, metalness: 0.22 });
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x222836, roughness: 0.68, metalness: 0.28 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; templeGroup.add(floor);
         // 石磚感：內圈平台
@@ -655,38 +702,61 @@
         const throneBack = new THREE.Mesh(new THREE.BoxGeometry(10, 25, 2), wallMat);
         throneBack.position.set(0, 14.5, -78); throneBack.castShadow = true; templeGroup.add(throneBack);
 
-        // 哥德殘垣斷壁與戰場雜物 (Debris)
-        const debrisMat = new THREE.MeshStandardMaterial({ color: 0x1e2432, roughness: 0.9 });
-        for (let i = 0; i < 14; i++) {
-            const rx = (Math.random() - 0.5) * 90;
-            const rz = (Math.random() - 0.5) * 100;
-            if (Math.abs(rx) < 15 && Math.abs(rz) < 15) continue;
-            
-            const type = Math.random();
-            if (type < 0.4) {
-                const pHeight = 8 + Math.random() * 18;
-                const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.2, pHeight, 12), debrisMat);
-                pillar.position.set(rx, pHeight / 2, rz);
-                pillar.rotation.z = (Math.random() - 0.5) * 0.3;
-                pillar.rotation.x = (Math.random() - 0.5) * 0.3;
-                pillar.castShadow = true; pillar.receiveShadow = true;
-                templeGroup.add(pillar);
-            } else if (type < 0.7) {
-                const box = new THREE.Mesh(new THREE.BoxGeometry(3 + Math.random()*4, 2 + Math.random()*4, 3 + Math.random()*4), debrisMat);
-                box.position.set(rx, box.geometry.parameters.height / 2, rz);
-                box.rotation.set(Math.random(), Math.random(), Math.random());
-                box.castShadow = true; box.receiveShadow = true;
-                templeGroup.add(box);
-            }
+        // —— 3A 感哥德神殿：對稱柱廊、拱門、階梯、無雜物 ——
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x2a3140, roughness: 0.78, metalness: 0.18 });
+        const stoneDark = new THREE.MeshStandardMaterial({ color: 0x1a1f2a, roughness: 0.85, metalness: 0.12 });
+        const stoneGold = new THREE.MeshStandardMaterial({ color: 0x3a3428, roughness: 0.55, metalness: 0.45 });
+        // 側牆
+        const sideWallL = new THREE.Mesh(new THREE.BoxGeometry(4, 42, 120), stoneDark);
+        sideWallL.position.set(-48, 21, -10); sideWallL.receiveShadow = true; sideWallL.castShadow = true; templeGroup.add(sideWallL);
+        const sideWallR = sideWallL.clone(); sideWallR.position.x = 48; templeGroup.add(sideWallR);
+        // 對稱柱廊
+        for (let z = -60; z <= 40; z += 18) {
+            [-32, 32].forEach((x) => {
+                const col = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.0, 28, 14), stoneMat);
+                col.position.set(x, 14, z); col.castShadow = true; col.receiveShadow = true; templeGroup.add(col);
+                const cap = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 4.2), stoneGold);
+                cap.position.set(x, 28.2, z); cap.castShadow = true; templeGroup.add(cap);
+                const base = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.5, 1.2, 14), stoneDark);
+                base.position.set(x, 0.6, z); base.receiveShadow = true; templeGroup.add(base);
+            });
+            // 橫樑
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(68, 1.4, 2.2), stoneMat);
+            beam.position.set(0, 28.8, z); beam.castShadow = true; templeGroup.add(beam);
         }
+        // 王座前階梯
+        for (let i = 0; i < 5; i++) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(22 - i * 1.5, 0.55, 3.2), stoneGold);
+            step.position.set(0, 0.3 + i * 0.55, -62 - i * 2.2);
+            step.receiveShadow = true; step.castShadow = true; templeGroup.add(step);
+        }
+        // 拱門（王座方向）
+        const arch = new THREE.Mesh(new THREE.TorusGeometry(10, 1.2, 10, 24, Math.PI), stoneGold);
+        arch.position.set(0, 18, -72); arch.rotation.z = Math.PI; arch.castShadow = true; templeGroup.add(arch);
+        // 地面中軸線金紋
+        const centerLine = new THREE.Mesh(
+            new THREE.PlaneGeometry(3.5, 100),
+            new THREE.MeshStandardMaterial({ color: 0x4a4030, metalness: 0.55, roughness: 0.4 })
+        );
+        centerLine.rotation.x = -Math.PI / 2; centerLine.position.set(0, 0.14, -10); templeGroup.add(centerLine);
+        // 外圈石環
+        const outerRing = new THREE.Mesh(
+            new THREE.RingGeometry(28, 29.5, 64),
+            new THREE.MeshStandardMaterial({ color: 0x3a4255, metalness: 0.3, roughness: 0.55, side: THREE.DoubleSide })
+        );
+        outerRing.rotation.x = -Math.PI / 2; outerRing.position.y = 0.13; templeGroup.add(outerRing);
 
         const torchLights = [];
-        for (let z = -65; z <= 65; z += 32) {
-            [-35, 35].forEach(x => {
-                const pillar = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.8, 50, 16), wallMat);
-                pillar.position.set(x, 25, z); pillar.castShadow = true; pillar.receiveShadow = true; templeGroup.add(pillar);
-                const torchLight = new THREE.PointLight(0xff6633, 5.5, 48); torchLight.position.set(x + (x > 0 ? -3 : 3), 18, z);
+        for (let z = -54; z <= 36; z += 18) {
+            [-32, 32].forEach((x) => {
+                const torchLight = new THREE.PointLight(0xff7744, 4.8, 42);
+                torchLight.position.set(x + (x > 0 ? -2.5 : 2.5), 16, z);
                 scene.add(torchLight); torchLights.push(torchLight);
+                const flame = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.35, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0xff8833 })
+                );
+                flame.position.copy(torchLight.position); templeGroup.add(flame);
             });
         }
 
@@ -805,67 +875,101 @@
             const obsidian = new THREE.MeshStandardMaterial({ color: 0x0c0e14, roughness: 0.2, metalness: 0.95 });
             const gold = new THREE.MeshStandardMaterial({ color: 0xb8962e, metalness: 1.0, roughness: 0.25 });
             const ember = new THREE.MeshStandardMaterial({ color: 0x661100, emissive: 0xff2200, emissiveIntensity: 0.9, metalness: 0.4, roughness: 0.4 });
+            const bone = new THREE.MeshStandardMaterial({ color: 0xc8b8a0, roughness: 0.7, metalness: 0.15 });
 
-            // 寬闊軀幹
-            const torso = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 1.9, 4.2, 10), voidMetal);
-            torso.position.y = 4.6; torso.castShadow = true; bGroup.add(torso);
-            const chest = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.4, 1.8), voidMetal);
-            chest.position.set(0, 5.2, 0.3); chest.castShadow = true; bGroup.add(chest);
-            // 裂縫核心
-            const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.85, 0), ember);
-            coreMesh.position.set(0, 5.1, 1.15); bGroup.add(coreMesh);
-            // 肩甲
-            const spauldL = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 8, 0, Math.PI * 2, 0, Math.PI / 1.6), obsidian);
-            spauldL.position.set(-2.6, 6.6, 0); spauldL.scale.set(1.2, 0.9, 1); bGroup.add(spauldL);
-            const spauldR = spauldL.clone(); spauldR.position.x = 2.6; bGroup.add(spauldR);
+            const hips = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.3, 1.6, 10), obsidian);
+            hips.position.y = 2.6; hips.castShadow = true; bGroup.add(hips);
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.1, 4.0, 12), voidMetal);
+            torso.position.y = 5.0; torso.castShadow = true; bGroup.add(torso);
+            const chest = new THREE.Mesh(new THREE.BoxGeometry(4.0, 2.6, 2.2), voidMetal);
+            chest.position.set(0, 5.5, 0.35); chest.castShadow = true; bGroup.add(chest);
+            const sternum = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.8, 0.4), gold);
+            sternum.position.set(0, 5.4, 1.35); bGroup.add(sternum);
+            for (let i = 0; i < 5; i++) {
+                const spike = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4 + i * 0.15, 5), bone);
+                spike.position.set(0, 3.5 + i * 0.9, -1.5); spike.rotation.x = 0.6; bGroup.add(spike);
+            }
+            const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(1.0, 0), ember);
+            coreMesh.position.set(0, 5.2, 1.35); bGroup.add(coreMesh);
+            const coreRing = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.08, 6, 20), gold);
+            coreRing.position.copy(coreMesh.position); bGroup.add(coreRing);
+            const spauldL = new THREE.Mesh(new THREE.SphereGeometry(1.55, 12, 10, 0, Math.PI * 2, 0, Math.PI / 1.55), obsidian);
+            spauldL.position.set(-3.0, 7.0, 0); spauldL.scale.set(1.35, 1.0, 1.15); spauldL.castShadow = true; bGroup.add(spauldL);
+            const spauldR = spauldL.clone(); spauldR.position.x = 3.0; bGroup.add(spauldR);
+            for (const sx of [-3.2, 3.2]) {
+                const sh = new THREE.Mesh(new THREE.ConeGeometry(0.35, 2.2, 6), bone);
+                sh.position.set(sx, 8.2, 0.2); sh.rotation.z = sx > 0 ? -0.4 : 0.4; bGroup.add(sh);
+            }
+            for (let i = -1; i <= 1; i++) {
+                const plate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.6, 0.2), voidMetal);
+                plate.position.set(i * 1.3, 2.2, 1.5); plate.rotation.x = 0.25; bGroup.add(plate);
+            }
 
-            // 頭：角盔
-            const headGroup = new THREE.Group(); headGroup.position.y = 7.6;
-            const helm = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.8, 2.0), obsidian); helm.castShadow = true; headGroup.add(helm);
-            const faceplate = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 0.5), voidMetal);
-            faceplate.position.set(0, -0.15, 0.9); headGroup.add(faceplate);
+            const headGroup = new THREE.Group(); headGroup.position.y = 8.0;
+            const helm = new THREE.Mesh(new THREE.BoxGeometry(1.9, 2.0, 2.2), obsidian); helm.castShadow = true; headGroup.add(helm);
+            const faceplate = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.0, 0.55), voidMetal);
+            faceplate.position.set(0, -0.2, 1.0); headGroup.add(faceplate);
+            const jaw = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 0.9), obsidian);
+            jaw.position.set(0, -0.85, 0.5); headGroup.add(jaw);
             const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2200 });
-            const lEye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), eyeMat); lEye.position.set(-0.38, 0.15, 1.05); headGroup.add(lEye);
-            const rEye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), eyeMat); rEye.position.set(0.38, 0.15, 1.05); headGroup.add(rEye);
-            const hornGeo = new THREE.ConeGeometry(0.28, 2.4, 7);
-            const lHorn = new THREE.Mesh(hornGeo, gold); lHorn.position.set(-0.85, 1.5, -0.1); lHorn.rotation.z = 0.55; lHorn.rotation.x = -0.25; headGroup.add(lHorn);
-            const rHorn = new THREE.Mesh(hornGeo, gold); rHorn.position.set(0.85, 1.5, -0.1); rHorn.rotation.z = -0.55; rHorn.rotation.x = -0.25; headGroup.add(rHorn);
-            const crown = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.08, 6, 12), gold);
-            crown.rotation.x = Math.PI / 2; crown.position.y = 0.95; headGroup.add(crown);
+            const lEye = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), eyeMat); lEye.position.set(-0.42, 0.2, 1.15); headGroup.add(lEye);
+            const rEye = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), eyeMat); rEye.position.set(0.42, 0.2, 1.15); headGroup.add(rEye);
+            const hornGeo = new THREE.ConeGeometry(0.32, 3.0, 7);
+            [[-0.95, 1.7, -0.1, 0.6, -0.3], [0.95, 1.7, -0.1, -0.6, -0.3],
+             [-0.5, 2.0, -0.4, 0.25, -0.5], [0.5, 2.0, -0.4, -0.25, -0.5]].forEach((h) => {
+                const horn = new THREE.Mesh(hornGeo, gold);
+                horn.position.set(h[0], h[1], h[2]); horn.rotation.z = h[3]; horn.rotation.x = h[4]; headGroup.add(horn);
+            });
+            const crown = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.1, 6, 14), gold);
+            crown.rotation.x = Math.PI / 2; crown.position.y = 1.1; headGroup.add(crown);
             bGroup.add(headGroup);
 
-            // 右手巨劍
-            const rightArmGroup = new THREE.Group(); rightArmGroup.position.set(3.0, 6.0, 0);
-            const rArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 2.8, 8), voidMetal);
-            rArmMesh.position.y = -1.2; rightArmGroup.add(rArmMesh);
-            const weaponGroup = new THREE.Group(); weaponGroup.position.set(0, -3.6, 0.5); weaponGroup.rotation.x = Math.PI / 2;
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 6.5, 8), obsidian); handle.position.y = 1.8; weaponGroup.add(handle);
-            const wGuard = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 0.4), gold); wGuard.position.y = 4.6; weaponGroup.add(wGuard);
-            const blade = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5.2, 0.22), new THREE.MeshStandardMaterial({ color: 0x3a0505, metalness: 0.85, roughness: 0.25, emissive: 0x330000, emissiveIntensity: 0.45 }));
-            blade.position.y = 7.2; blade.castShadow = true; weaponGroup.add(blade);
-            const swordLight = new THREE.PointLight(0xff3300, 3.2, 18); swordLight.position.y = 7.0; weaponGroup.add(swordLight);
+            const rightArmGroup = new THREE.Group(); rightArmGroup.position.set(3.2, 6.4, 0);
+            const rArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 3.0, 8), voidMetal);
+            rArmMesh.position.y = -1.3; rightArmGroup.add(rArmMesh);
+            const rFore = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 2.0, 8), obsidian);
+            rFore.position.y = -3.2; rightArmGroup.add(rFore);
+            const weaponGroup = new THREE.Group(); weaponGroup.position.set(0, -4.0, 0.6); weaponGroup.rotation.x = Math.PI / 2;
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.32, 7.2, 8), obsidian); handle.position.y = 2.0; weaponGroup.add(handle);
+            const wGuard = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.35, 0.5), gold); wGuard.position.y = 5.2; weaponGroup.add(wGuard);
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(1.9, 6.5, 0.28), new THREE.MeshStandardMaterial({ color: 0x3a0505, metalness: 0.85, roughness: 0.25, emissive: 0x330000, emissiveIntensity: 0.55 }));
+            blade.position.y = 8.5; blade.castShadow = true; weaponGroup.add(blade);
+            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.95, 1.2, 4), blade.material); tip.position.y = 12.0; tip.rotation.y = Math.PI / 4; weaponGroup.add(tip);
+            const swordLight = new THREE.PointLight(0xff3300, 4.0, 22); swordLight.position.y = 8.5; weaponGroup.add(swordLight);
             rightArmGroup.add(weaponGroup); bGroup.add(rightArmGroup);
 
-            // 左手
-            const leftArmGroup = new THREE.Group(); leftArmGroup.position.set(-3.0, 6.0, 0);
-            const lArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 2.8, 8), voidMetal);
-            lArmMesh.position.y = -1.2; leftArmGroup.add(lArmMesh);
-            const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), voidMetal);
-            leftHand.position.y = -2.6; leftArmGroup.add(leftHand);
+            const leftArmGroup = new THREE.Group(); leftArmGroup.position.set(-3.2, 6.4, 0);
+            const lArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 3.0, 8), voidMetal);
+            lArmMesh.position.y = -1.3; leftArmGroup.add(lArmMesh);
+            const lFore = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 2.0, 8), obsidian);
+            lFore.position.y = -3.2; leftArmGroup.add(lFore);
+            const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.75, 8, 8), voidMetal);
+            leftHand.position.y = -4.3; leftArmGroup.add(leftHand);
+            for (let i = -1; i <= 1; i++) {
+                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.12, 1.1, 4), bone);
+                claw.position.set(i * 0.35, -5.1, 0.35); claw.rotation.x = 0.5; leftArmGroup.add(claw);
+            }
             bGroup.add(leftArmGroup);
 
+            const cape = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 7.5), new THREE.MeshStandardMaterial({ color: 0x1a1020, side: THREE.DoubleSide, roughness: 0.9 }));
+            cape.position.set(0, 4.5, -2.2); cape.rotation.x = 0.15; bGroup.add(cape);
+
             function makeBossLeg(x) {
-                const leg = new THREE.Group(); leg.position.set(x, 3.2, 0);
-                const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.7, 2.0, 8), voidMetal);
-                thigh.position.y = -1.0; thigh.castShadow = true; leg.add(thigh);
-                const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.55, 1.5, 8), obsidian);
-                shin.position.set(0, -2.5, 0.05); leg.add(shin);
+                const leg = new THREE.Group(); leg.position.set(x, 3.4, 0);
+                const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.8, 2.2, 8), voidMetal);
+                thigh.position.y = -1.1; thigh.castShadow = true; leg.add(thigh);
+                const knee = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 8), gold); knee.position.y = -2.2; leg.add(knee);
+                const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.6, 1.7, 8), obsidian);
+                shin.position.set(0, -3.1, 0.08); leg.add(shin);
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.55, 1.5), obsidian);
+                boot.position.set(0, -4.0, 0.25); leg.add(boot);
                 return leg;
             }
-            const legL = makeBossLeg(-1.35); const legR = makeBossLeg(1.35);
+            const legL = makeBossLeg(-1.5); const legR = makeBossLeg(1.5);
             bGroup.add(legL); bGroup.add(legR);
 
-            return { group: bGroup, headGroup, rightArmGroup, leftArmGroup, coreMesh, weaponGroup, legL, legR };
+            const variantGroup = new THREE.Group(); bGroup.add(variantGroup);
+            return { group: bGroup, headGroup, rightArmGroup, leftArmGroup, coreMesh, weaponGroup, legL, legR, variantGroup, cape, eyeMat };
         }
 
         const playerGroup = new THREE.Group(); scene.add(playerGroup); playerGroup.position.set(0, 0, 22);
@@ -892,6 +996,7 @@
             longsword: {
                 id: 'longsword', name: '騎士長劍',
                 dmgMul: 1.0, heavyMul: 1.0, speedMul: 1.0, rangeMul: 1.0, postureMul: 1.0,
+                defense: 0.38, rollMul: 1.0, recoveryMul: 1.0,
                 hasShield: true, shiftMode: 'shield', skillStyle: 'knight',
                 shiftHint: 'Shift 彈反 / 格擋',
                 qHint: 'Q 劍氣', eHint: 'E 突進'
@@ -899,16 +1004,28 @@
             katana: {
                 id: 'katana', name: '太刀',
                 dmgMul: 1.08, heavyMul: 1.2, speedMul: 1.08, rangeMul: 1.1, postureMul: 1.15,
+                defense: 0.28, rollMul: 1.05, recoveryMul: 0.95,
                 hasShield: false, shiftMode: 'iai', skillStyle: 'katana',
-                shiftHint: 'Shift 防反 1.5秒→居合後跳（5秒CD）',
-                qHint: 'Q 見切 1.5秒防反', eHint: 'E 登龍'
+                skillCd: 10, shiftCd: 10, counterSecs: 0.7,
+                shiftHint: 'Shift 防反 0.7秒→居合後跳（10秒CD）',
+                qHint: 'Q 見切 0.7秒防反（10秒CD）', eHint: 'E 登龍（10秒CD）'
             },
             dagger: {
                 id: 'dagger', name: '匕首',
-                dmgMul: 0.72, heavyMul: 0.85, speedMul: 1.55, rangeMul: 0.78, postureMul: 0.75,
+                dmgMul: 0.72, heavyMul: 0.85, speedMul: 1.85, rangeMul: 0.78, postureMul: 0.75,
+                defense: 0.12, rollMul: 1.35, recoveryMul: 0.65,
                 hasShield: false, shiftMode: 'flash', skillStyle: 'dagger',
                 shiftHint: 'Shift 雷閃衝刺（5秒CD）',
                 qHint: 'Q 割喉流血', eHint: 'E 分身手裏劍'
+            },
+            greatsword: {
+                id: 'greatsword', name: '大劍',
+                dmgMul: 2.4, heavyMul: 3.2, speedMul: 0.62, rangeMul: 1.25, postureMul: 2.0,
+                defense: 0.50, rollMul: 0.85, recoveryMul: 1.15,
+                hasShield: false, shiftMode: 'scoop', skillStyle: 'greatsword',
+                skillCd: 10, shiftCd: 10,
+                shiftHint: 'Shift 上撈斬（擊暈 2 秒・10秒CD）',
+                qHint: 'Q 劍氣震盪（10秒CD）', eHint: 'E 重踏突進（10秒CD）'
             }
         };
         let selectedWeapon = WEAPONS.longsword;
@@ -934,41 +1051,124 @@
             isBlocking: false, lockOn: false, velocity: new THREE.Vector3(),
             moveVel: new THREE.Vector3(), vertVel: 0, grounded: true,
             walkPhase: 0, moveSpeed: 0,
-            qCooldown: 0, eCooldown: 0, skillCdMax: 5.0,
+            qCooldown: 0, eCooldown: 0, skillCdMax: 5.0, shiftCdMax: 5.0,
             parryTimer: 0, parryWindow: 0, parrySuccess: false,
             recoveryTimer: 0, recoveryFrom: null,
             shiftArtCd: 0, hyperArmor: false, shiftHoldTime: 0,
-            counterWindow: 0, counterType: null
+            counterWindow: 0, counterType: null,
+            chargeLevel: 0, charging: false, chargeMax: 2.2,
+            iframeTimer: 0
         };
         // Boss 流血
         const bossStatus = { bleedTime: 0, bleedDps: 0 };
 
         const bossPhys = { walkPhase: 0, moveVel: new THREE.Vector3() };
 
+        const BOSS_DEFS = [
+            {
+                id: 1, name: '深淵君主', title: 'ABYSSAL SOVEREIGN',
+                desc: '第一試煉：深淵王座的看守者',
+                hp: 12000, posture: 350, speed: 1.0, dmgMul: 1.0, attackCd: 1.0,
+                color: 0x1a1e2a, core: 0xff2200
+            },
+            {
+                id: 2, name: '血月審判者', title: 'CRIMSON JUDICATOR',
+                desc: '第二試煉：更快連段與更猛烈遠程',
+                hp: 16000, posture: 420, speed: 1.25, dmgMul: 1.25, attackCd: 0.72,
+                color: 0x3a1018, core: 0xff0044
+            },
+            {
+                id: 3, name: '虛空終焉', title: 'VOID ESCHATON',
+                desc: '最終試煉：極高攻頻與毀滅性招式',
+                hp: 22000, posture: 500, speed: 1.45, dmgMul: 1.45, attackCd: 0.52,
+                color: 0x0a0e22, core: 0x6622ff
+            }
+        ];
+        let selectedBossId = 1;
+        let unlockedBoss = 1;
+        try {
+            const u = parseInt(localStorage.getItem('abyss_unlock') || '1', 10);
+            if (u >= 1 && u <= 3) unlockedBoss = u;
+        } catch (e) {}
+
         const boss = {
             hp: 12000, maxHp: 12000, posture: 0, maxPosture: 350,
             pos: bossGroup.position, state: 'IDLE', timer: 0, attackType: '', attackDuration: 1.1,
-            hitDone: false, circleDir: 1, isBeingCrit: false,
-            projectiles: [], swordWaves: [], telegraph: null
+            hitDone: false, hitCount: 0, circleDir: 1, isBeingCrit: false,
+            projectiles: [], swordWaves: [], telegraph: null,
+            dmgMul: 1.0, speedMul: 1.0, attackCdMul: 1.0, def: null,
+            phase: 1, phaseAnnounced: false
         };
+
+        function hurtPlayer(raw, label) {
+            const def = (selectedWeapon && selectedWeapon.defense != null) ? selectedWeapon.defense : 0.25;
+            const actual = Math.max(1, Math.round(raw * (1 - def)));
+            player.hp = Math.max(0, player.hp - actual);
+            if (label !== false) {
+                if (typeof label === 'string') createDamageNumber(label.replace(/\d+/g, String(actual)), player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
+                else createDamageNumber('-' + actual, player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
+            }
+            if (player.hp <= 0) triggerGameOver();
+            return actual;
+        }
 
         const ATTACK_LABELS = {
             SWIPE: '橫掃斬', MACE_SMASH: '崩山擊', THREE_COMBO: '三連斬',
+            FIVE_COMBO: '五連狂斬', CROSS_SLASH: '十字雙斬',
             SPIN_ATTACK: '旋風斬', STOMP_AOE: '踏潰', UPPERCUT: '上挑',
             CHARGE_THRUST: '衝刺', DARK_SHOCKWAVE: '深淵環波',
-            DARK_ORB_BARRAGE: '虛空魔球', ABYSS_SPIKES: '尖刺圈'
+            DARK_ORB_BARRAGE: '虛空魔球', ABYSS_SPIKES: '尖刺圈',
+            GROUND_CRUSH: '碎地砸（不可防）', GRAB_RUSH: '撲殺衝撞（不可防）',
+            VOID_RAIN: '虛空雨', FURY_BLADE: '狂怒連刃', HEAVEN_FALL: '天崩',
+            SIX_COMBO: '六連斬', DOUBLE_CROSS: '雙十字連斬', LEAP_SLAM: '躍擊連砸',
+            SIDE_SWEEP_COMBO: '三連橫掃', PIERCE_COMBO: '三段突刺'
         };
         const ATTACK_COLORS = {
             SWIPE: 0x44ddff, MACE_SMASH: 0xff4422, THREE_COMBO: 0xffaa44,
+            FIVE_COMBO: 0xff6600, CROSS_SLASH: 0xff88cc,
             SPIN_ATTACK: 0xffd700, STOMP_AOE: 0xff2200, UPPERCUT: 0xffeeaa,
             CHARGE_THRUST: 0xff3355, DARK_SHOCKWAVE: 0x8844ff,
-            DARK_ORB_BARRAGE: 0x6622ff, ABYSS_SPIKES: 0xaa44ff
+            DARK_ORB_BARRAGE: 0x6622ff, ABYSS_SPIKES: 0xaa44ff,
+            GROUND_CRUSH: 0xff0000, GRAB_RUSH: 0xff2200,
+            VOID_RAIN: 0xcc44ff, FURY_BLADE: 0xffaa00, HEAVEN_FALL: 0xffee88,
+            SIX_COMBO: 0xff8833, DOUBLE_CROSS: 0xff66aa, LEAP_SLAM: 0xff5522,
+            SIDE_SWEEP_COMBO: 0x66ddff, PIERCE_COMBO: 0xff3366
+        };
+        // 招式屬性：連段命中點、是否不可彈反／格擋
+        const ATTACK_META = {
+            SWIPE: { hits: [0.45], unblockable: false, dmg: 42 },
+            MACE_SMASH: { hits: [0.48], unblockable: false, dmg: 55 },
+            THREE_COMBO: { hits: [0.22, 0.48, 0.72], unblockable: false, dmg: 28 },
+            FIVE_COMBO: { hits: [0.15, 0.32, 0.48, 0.64, 0.80], unblockable: false, dmg: 22 },
+            CROSS_SLASH: { hits: [0.35, 0.68], unblockable: false, dmg: 36 },
+            SPIN_ATTACK: { hits: [0.3, 0.55, 0.8], unblockable: false, dmg: 30 },
+            STOMP_AOE: { hits: [0.5], unblockable: false, dmg: 48, aoe: true },
+            UPPERCUT: { hits: [0.45], unblockable: false, dmg: 50 },
+            CHARGE_THRUST: { hits: [0.35], unblockable: false, dmg: 52 },
+            DARK_SHOCKWAVE: { hits: [0.5], unblockable: false, dmg: 36, special: true },
+            DARK_ORB_BARRAGE: { hits: [], unblockable: false, dmg: 28, special: true },
+            ABYSS_SPIKES: { hits: [], unblockable: false, dmg: 32, special: true },
+            GROUND_CRUSH: { hits: [0.55], unblockable: true, dmg: 58, aoe: true },
+            GRAB_RUSH: { hits: [0.4], unblockable: true, dmg: 62 },
+            VOID_RAIN: { hits: [], unblockable: false, dmg: 24, special: true },
+            FURY_BLADE: { hits: [0.18, 0.34, 0.5, 0.66, 0.82], unblockable: false, dmg: 26 },
+            HEAVEN_FALL: { hits: [0.55], unblockable: true, dmg: 70, aoe: true },
+            SIX_COMBO: { hits: [0.12, 0.26, 0.4, 0.54, 0.68, 0.84], unblockable: false, dmg: 20 },
+            DOUBLE_CROSS: { hits: [0.22, 0.4, 0.6, 0.78], unblockable: false, dmg: 30 },
+            LEAP_SLAM: { hits: [0.35, 0.7], unblockable: false, dmg: 40, aoe: true },
+            SIDE_SWEEP_COMBO: { hits: [0.25, 0.5, 0.75], unblockable: false, dmg: 32 },
+            PIERCE_COMBO: { hits: [0.28, 0.52, 0.76], unblockable: false, dmg: 34 }
         };
 
         let camYaw = 0, camPitch = 0.32, camDistance = 10.5, cameraShakeIntensity = 0, hitstopTimer = 0;
         const keys = {};
 
         window.addEventListener('keydown', (e) => {
+            // 遊戲中阻止空白鍵啟動焦點按鈕（會誤觸「重試」）與頁面捲動
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (e.repeat) return;
+            }
             keys[e.code] = true;
             if ((e.code === 'Tab' || e.code === 'KeyR') && !e.repeat) { e.preventDefault(); player.lockOn = !player.lockOn; }
             if (e.code === 'KeyQ' && !e.repeat) { e.preventDefault(); handlePlayerSkill('Q'); }
@@ -976,9 +1176,9 @@
             if (e.code === 'KeyF' && !e.repeat) { e.preventDefault(); handleEstusFlask(); }
             if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) onShiftTap();
         });
-        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-        let gameStarted = false;
-
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
         function clearSwordGroup() {
             const g = knightMesh.swordGroup;
             while (g.children.length) {
@@ -991,6 +1191,30 @@
         function applyWeaponVisual(wpn) {
             wpn = wpn || selectedWeapon || WEAPONS.longsword;
             if (knightMesh.shield) knightMesh.shield.visible = !!wpn.hasShield;
+
+            // MH 職業輪廓差異
+            const body = knightMesh.body;
+            if (wpn.id === 'greatsword') {
+                knightMesh.group.scale.set(1.22, 1.18, 1.22); // 厚重獵人
+                body.scale.set(1.08, 1.0, 1.12);
+            } else if (wpn.id === 'katana') {
+                knightMesh.group.scale.set(1.05, 1.12, 1.05); // 修長太刀使
+                body.scale.set(0.95, 1.05, 0.95);
+            } else if (wpn.id === 'dagger') {
+                knightMesh.group.scale.set(0.98, 1.0, 0.98); // 輕盈雙刀
+                body.scale.set(0.92, 1.0, 0.92);
+            } else {
+                knightMesh.group.scale.set(1.12, 1.1, 1.12); // 騎士
+                body.scale.set(1.0, 1.0, 1.0);
+            }
+            // 甲色傾向
+            body.traverse((o) => {
+                if (!o.isMesh || !o.material || !o.material.color) return;
+                if (wpn.id === 'katana' && o.material.metalness > 0.5) o.material.color.setHex(0x2a3548);
+                if (wpn.id === 'dagger' && o.material.metalness > 0.5) o.material.color.setHex(0x3a2838);
+                if (wpn.id === 'greatsword' && o.material.metalness > 0.5) o.material.color.setHex(0x5a5040);
+                if (wpn.id === 'longsword' && o.material.metalness > 0.5) o.material.color.setHex(0x8a96a8);
+            });
 
             const gold = new THREE.MeshStandardMaterial({ color: 0xc9a227, metalness: 1, roughness: 0.22 });
             const leather = new THREE.MeshStandardMaterial({ color: 0x3a2818, roughness: 0.9, metalness: 0.05 });
@@ -1056,6 +1280,27 @@
                 sg.scale.set(1, 1, 1);
                 knightMesh.blade = blade; knightMesh.fuller = null; knightMesh.guard = guard;
                 knightMesh.leftArm.position.set(-0.62, 2.05, 0.05);
+            } else if (wpn.id === 'greatsword') {
+                // MH 大劍：厚重大刃、長柄、重鍔
+                const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 1.15, 10), leather);
+                const wrap = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.85, 10),
+                    new THREE.MeshStandardMaterial({ color: 0x4a3020, roughness: 0.9 }));
+                wrap.position.y = 0.05;
+                const pommel = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.18), gold); pommel.position.y = -0.65;
+                const guard = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.14, 0.28), gold); guard.position.y = 0.62;
+                const wingL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.4, 0.12), dark); wingL.position.set(-0.58, 0.75, 0);
+                const wingR = wingL.clone(); wingR.position.x = 0.58;
+                const bladeMat = new THREE.MeshPhysicalMaterial({ color: 0xa8b4c4, metalness: 0.95, roughness: 0.25, clearcoat: 0.35 });
+                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.38, 4.2, 0.12), bladeMat);
+                blade.position.y = 2.75; blade.castShadow = true;
+                const fuller = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3.5, 0.13), dark); fuller.position.y = 2.7;
+                const tip = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.55, 4), bladeMat); tip.position.y = 5.05; tip.rotation.y = Math.PI / 4;
+                const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.14), gold); ridge.position.y = 1.0;
+                sg.add(grip, wrap, pommel, guard, wingL, wingR, blade, fuller, tip, ridge);
+                sg.position.set(0.05, -1.05, 0.08);
+                knightMesh.blade = blade; knightMesh.fuller = fuller; knightMesh.guard = guard;
+                // 雙手持
+                knightMesh.leftArm.position.set(-0.2, 2.0, 0.25);
             } else {
                 // 騎士長劍
                 const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.58, 8), leather);
@@ -1075,21 +1320,197 @@
                 knightMesh.leftArm.position.set(-0.68, 2.05, 0);
             }
 
-                        const hint = document.getElementById('controls-hint');
+                        // 技能冷卻依武器
+            player.skillCdMax = wpn.skillCd || 5.0;
+            player.shiftCdMax = wpn.shiftCd || 5.0;
+
+            const hint = document.getElementById('controls-hint');
             if (hint) {
-                hint.innerHTML = '左鍵 輕攻擊　右鍵 重擊　Q 劍氣　E 突進　F 原素瓶<br>空白 翻滾　' +
+                hint.innerHTML = '左鍵 輕攻擊　右鍵 重擊　' + (wpn.qHint || 'Q') + '　' + (wpn.eHint || 'E') + '　F 原素瓶<br>空白 翻滾　' +
                     (wpn.shiftHint || 'Shift') + '　Tab 鎖定　WASD 移動';
             }
         }
 
+        function showPanel(id) {
+            document.querySelectorAll('.menu-panel').forEach((p) => p.classList.remove('active'));
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+        }
+
+        function refreshBossGrid() {
+            const grid = document.getElementById('boss-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            BOSS_DEFS.forEach((b) => {
+                const locked = b.id > unlockedBoss;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'boss-card' + (b.id === selectedBossId ? ' selected' : '') + (locked ? ' locked' : '');
+                btn.innerHTML = '<div class="bname">' + b.name + '</div><div class="bdesc">' + b.desc +
+                    '<br>血量 ' + b.hp + '　難度 ×' + b.dmgMul.toFixed(2) + '</div>' +
+                    (locked ? '<div class="block">需先通關前一關</div>' : '');
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (locked) return;
+                    selectedBossId = b.id;
+                    refreshBossGrid();
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function applyBossDef(def) {
+            boss.def = def;
+            boss.hp = def.hp; boss.maxHp = def.hp;
+            boss.posture = 0; boss.maxPosture = def.posture;
+            boss.dmgMul = def.dmgMul;
+            boss.speedMul = def.speed;
+            boss.attackCdMul = def.attackCd;
+            boss.state = 'IDLE'; boss.timer = 0.8;
+            boss.isBeingCrit = false; boss.hitDone = false; boss.hitCount = 0;
+            boss.phase = 1; boss.phaseAnnounced = false;
+            // 外觀
+            if (bossModel.coreMesh && bossModel.coreMesh.material) {
+                bossModel.coreMesh.material.emissive.setHex(def.core);
+                bossModel.coreMesh.material.emissiveIntensity = 0.7 + def.id * 0.35;
+            }
+            // 體型／壓迫感
+            const sc = 1.05 + def.id * 0.12;
+            bossModel.group.scale.set(sc, sc, sc);
+            bossGroup.traverse((o) => {
+                if (o.isMesh && o.material && o.material.color && o !== bossModel.coreMesh) {
+                    if (def.id === 2 && o.material.metalness > 0.3) o.material.color.setHex(0x4a1520);
+                    else if (def.id === 3 && o.material.metalness > 0.3) o.material.color.setHex(0x12182e);
+                }
+            });
+            if (bossModel.eyeMat) {
+                bossModel.eyeMat.color.setHex(def.id === 2 ? 0xff0044 : (def.id === 3 ? 0x8866ff : 0xff2200));
+            }
+            if (bossModel.variantGroup) {
+                while (bossModel.variantGroup.children.length) {
+                    const c = bossModel.variantGroup.children[0];
+                    bossModel.variantGroup.remove(c);
+                }
+                const vg = bossModel.variantGroup;
+                if (def.id === 2) {
+                    for (const sx of [-1, 1]) {
+                        const wing = new THREE.Mesh(
+                            new THREE.PlaneGeometry(4.5, 6.5),
+                            new THREE.MeshStandardMaterial({ color: 0x5a1020, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+                        );
+                        wing.position.set(sx * 3.5, 6.5, -1.5); wing.rotation.y = sx * 0.5; wing.rotation.z = sx * 0.3; vg.add(wing);
+                    }
+                    const halo = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.12, 8, 24), new THREE.MeshBasicMaterial({ color: 0xff2244 }));
+                    halo.position.set(0, 10.5, 0); halo.rotation.x = Math.PI / 2; vg.add(halo);
+                } else if (def.id === 3) {
+                    for (let i = 0; i < 8; i++) {
+                        const a = (i / 8) * Math.PI * 2;
+                        const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 0), new THREE.MeshBasicMaterial({ color: 0x8866ff }));
+                        shard.position.set(Math.cos(a) * 4.5, 6 + Math.sin(a * 2) * 0.5, Math.sin(a) * 4.5);
+                        vg.add(shard);
+                    }
+                    const voidCore = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 12), new THREE.MeshBasicMaterial({ color: 0x4400aa }));
+                    voidCore.position.set(0, 11.5, 0); vg.add(voidCore);
+                } else {
+                    const mantle = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 3), new THREE.MeshStandardMaterial({ color: 0x2a2430, metalness: 0.5, roughness: 0.5 }));
+                    mantle.position.set(0, 7.2, -0.5); vg.add(mantle);
+                }
+            }
+            const title = document.querySelector('#boss-ui .boss-name') || document.getElementById('boss-name');
+            // update boss name if element exists
+            const nameEls = document.querySelectorAll('#boss-ui div');
+            // set via boss-atk or create
+            let bn = document.getElementById('boss-display-name');
+            if (!bn) {
+                const ui = document.getElementById('boss-ui');
+                if (ui && ui.firstElementChild) {
+                    bn = document.createElement('div');
+                    bn.id = 'boss-display-name';
+                    bn.style.cssText = 'color:#d4af37;letter-spacing:4px;font-size:14px;margin-bottom:6px;text-align:center;';
+                    ui.insertBefore(bn, ui.firstElementChild);
+                }
+            }
+            if (bn) bn.textContent = def.name;
+        }
+
+        function resetPlayerCombat() {
+            player.hp = player.maxHp; player.stamina = player.maxStamina;
+            player.flasks = 3; player.state = 'IDLE';
+            player.qCooldown = 0; player.eCooldown = 0; player.shiftArtCd = 0;
+            player.counterWindow = 0; clearPlayerIframe();
+            playerGroup.position.set(0, 0, 22);
+            bossGroup.position.set(0, 0, -12);
+            boss.projectiles.forEach((p) => { if (p.mesh) scene.remove(p.mesh); });
+            boss.projectiles = [];
+            boss.swordWaves.forEach((w) => { if (w.mesh) scene.remove(w.mesh); });
+            boss.swordWaves = [];
+            document.getElementById('boss-ui').style.opacity = '1';
+            document.getElementById('end-screen').classList.remove('show');
+        }
+
         function startCombat() {
             if (gameStarted) return;
-            gameStarted = true;
+            const def = BOSS_DEFS.find((b) => b.id === selectedBossId) || BOSS_DEFS[0];
+            if (def.id > unlockedBoss) return;
+            clearAllKeys();
             applyWeaponVisual(selectedWeapon);
+            applyBossDef(def);
+            resetPlayerCombat();
+            gameStarted = true;
             const ss = document.getElementById('start-screen');
             if (ss) ss.classList.add('hidden');
             try { document.body.requestPointerLock(); } catch (err) {}
         }
+
+        function returnToMenu() {
+            gameStarted = false;
+            player.state = 'IDLE';
+            clearPlayerIframe();
+            clearAllKeys();
+            document.getElementById('end-screen').classList.remove('show');
+            document.getElementById('start-screen').classList.remove('hidden');
+            showPanel('panel-title');
+            refreshBossGrid();
+            try {
+                document.getElementById('btn-retry')?.blur();
+                document.getElementById('btn-return-menu')?.blur();
+                document.exitPointerLock();
+            } catch (e) {}
+        }
+
+        function clearAllKeys() {
+            for (const k of Object.keys(keys)) keys[k] = false;
+        }
+
+        function retryCombat() {
+            // 重試當前 Boss，不回主選單
+            document.getElementById('end-screen').classList.remove('show');
+            // 解除按鈕焦點，避免空白鍵再次觸發重試
+            try {
+                document.getElementById('btn-retry')?.blur();
+                document.getElementById('btn-return-menu')?.blur();
+                if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+            } catch (e) {}
+            clearAllKeys();
+            const def = BOSS_DEFS.find((b) => b.id === selectedBossId) || BOSS_DEFS[0];
+            applyWeaponVisual(selectedWeapon);
+            applyBossDef(def);
+            resetPlayerCombat();
+            player.state = 'IDLE';
+            clearPlayerIframe();
+            gameStarted = true;
+            try { document.body.requestPointerLock(); } catch (err) {}
+        }
+
+        document.getElementById('btn-retry')?.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation(); retryCombat();
+        });
+        document.getElementById('btn-to-weapon')?.addEventListener('click', (e) => { e.stopPropagation(); showPanel('panel-weapon'); });
+        document.getElementById('btn-back-title')?.addEventListener('click', (e) => { e.stopPropagation(); showPanel('panel-title'); });
+        document.getElementById('btn-to-boss')?.addEventListener('click', (e) => { e.stopPropagation(); refreshBossGrid(); showPanel('panel-boss'); });
+        document.getElementById('btn-back-weapon')?.addEventListener('click', (e) => { e.stopPropagation(); showPanel('panel-weapon'); });
+        document.getElementById('btn-return-menu')?.addEventListener('click', (e) => { e.stopPropagation(); returnToMenu(); });
+
         document.querySelectorAll('.weapon-card').forEach((card) => {
             card.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1100,15 +1521,33 @@
                 applyWeaponVisual(selectedWeapon);
             });
         });
-        // 初始預覽
         applyWeaponVisual(selectedWeapon);
+        refreshBossGrid();
         const btnStart = document.getElementById('btn-start');
         if (btnStart) btnStart.addEventListener('click', (e) => { e.stopPropagation(); startCombat(); });
+        let gameStarted = false;
         window.addEventListener('mousedown', (e) => {
             if (!gameStarted) return;
             if (e.button === 0) handlePlayerAttack('LIGHT');
-            if (e.button === 2) handlePlayerAttack('HEAVY');
+            if (e.button === 2) {
+                // 大劍：按住右鍵蓄力
+                if ((selectedWeapon && selectedWeapon.skillStyle) === 'greatsword') {
+                    beginGreatswordCharge();
+                } else {
+                    handlePlayerAttack('HEAVY');
+                }
+            }
         });
+        window.addEventListener('mouseup', (e) => {
+            if (!gameStarted) return;
+            if (e.button === 2) {
+                keys['MouseRight'] = false;
+                if (player.charging) releaseGreatswordCharge();
+            }
+        });
+        window.addEventListener('mousedown', (e) => {
+            if (e.button === 2) keys['MouseRight'] = true;
+        }, true);
         window.addEventListener('mousemove', (e) => {
             if (!gameStarted || player.lockOn) return;
             // pointer lock: use movementX; fallback: still allow slight drag when locked fails
@@ -1186,59 +1625,152 @@
         function showBossTelegraph(type) {
             clearBossTelegraph();
             const color = ATTACK_COLORS[type] || 0xffffff;
-            let mesh;
-            if (type === 'DARK_SHOCKWAVE' || type === 'STOMP_AOE' || type === 'SPIN_ATTACK' || type === 'ABYSS_SPIKES') {
-                const r = type === 'DARK_SHOCKWAVE' ? 6 : (type === 'SPIN_ATTACK' ? 5 : 4);
-                mesh = new THREE.Mesh(
-                    new THREE.RingGeometry(r * 0.55, r, 48),
-                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
-                );
-                mesh.rotation.x = -Math.PI / 2;
-                mesh.position.copy(boss.pos);
-                mesh.position.y = 0.08;
-            } else if (type === 'CHARGE_THRUST') {
-                mesh = new THREE.Mesh(
-                    new THREE.PlaneGeometry(1.2, 16),
-                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.45, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
-                );
-                mesh.rotation.x = -Math.PI / 2;
-                mesh.position.copy(boss.pos);
-                mesh.position.y = 0.1;
-                const dir = player.pos.clone().sub(boss.pos); dir.y = 0; dir.normalize();
-                mesh.position.add(dir.clone().multiplyScalar(8));
-                mesh.lookAt(player.pos.clone().setY(0.1));
-            } else if (type === 'DARK_ORB_BARRAGE') {
-                mesh = new THREE.Mesh(
-                    new THREE.RingGeometry(1.5, 2.2, 32),
-                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.6, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
-                );
-                mesh.position.copy(boss.pos.clone().add(new THREE.Vector3(0, 4.5, 0)));
+            const meta = ATTACK_META[type] || {};
+            const isUB = !!meta.unblockable;
+            const group = new THREE.Group();
+            group.userData.isTelegraph = true;
+
+            // 地面危險區底色（半透明扇形／圓）
+            const dangerMat = new THREE.MeshBasicMaterial({
+                color: isUB ? 0xff0000 : color,
+                transparent: true, opacity: isUB ? 0.45 : 0.38,
+                side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+            });
+            const edgeMat = new THREE.MeshBasicMaterial({
+                color: isUB ? 0xff6666 : 0xffffff,
+                transparent: true, opacity: 0.85,
+                side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+            });
+
+            if (type === 'DARK_SHOCKWAVE' || type === 'STOMP_AOE' || type === 'SPIN_ATTACK' || type === 'ABYSS_SPIKES' || type === 'GROUND_CRUSH' || type === 'HEAVEN_FALL') {
+                const r = type === 'HEAVEN_FALL' ? 9 : (type === 'DARK_SHOCKWAVE' || type === 'GROUND_CRUSH' ? 7 : (type === 'SPIN_ATTACK' ? 6 : 5));
+                const fill = new THREE.Mesh(new THREE.CircleGeometry(r, 48), dangerMat);
+                fill.rotation.x = -Math.PI / 2; fill.position.y = 0.06; group.add(fill);
+                const ring = new THREE.Mesh(new THREE.RingGeometry(r * 0.88, r, 48), edgeMat);
+                ring.rotation.x = -Math.PI / 2; ring.position.y = 0.1; group.add(ring);
+                // 內圈脈衝
+                const inner = new THREE.Mesh(new THREE.RingGeometry(r * 0.25, r * 0.32, 32), edgeMat.clone());
+                inner.material.opacity = 0.5; inner.rotation.x = -Math.PI / 2; inner.position.y = 0.11; group.add(inner);
+            } else if (type === 'CHARGE_THRUST' || type === 'GRAB_RUSH') {
+                const path = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 22), dangerMat);
+                path.rotation.x = -Math.PI / 2; path.position.y = 0.08;
+                const dir = player.pos.clone().sub(boss.pos); dir.y = 0;
+                if (dir.lengthSq() < 0.01) dir.set(0, 0, 1); else dir.normalize();
+                path.position.copy(boss.pos).add(dir.clone().multiplyScalar(11));
+                path.position.y = 0.08;
+                const ang = Math.atan2(dir.x, dir.z);
+                path.rotation.z = -ang;
+                group.add(path);
+                // 箭頭指示
+                const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.2, 4), edgeMat);
+                arrow.position.copy(boss.pos).add(dir.clone().multiplyScalar(5));
+                arrow.position.y = 0.5; arrow.rotation.x = Math.PI / 2; arrow.rotation.z = ang;
+                group.add(arrow);
+            } else if (type === 'DARK_ORB_BARRAGE' || type === 'VOID_RAIN') {
+                const aim = new THREE.Mesh(new THREE.RingGeometry(1.2, 2.0, 32), dangerMat);
+                aim.position.set(0, 5, 0); group.add(aim);
+                // 指向玩家的虛線柱
+                const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.35, 12, 8), dangerMat);
+                beam.position.set(0, 4, 0); group.add(beam);
             } else {
-                mesh = new THREE.Mesh(
-                    new THREE.RingGeometry(2.2, 4.8, 40, 1, 0, Math.PI * 1.2),
-                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
+                // 近戰扇形：明確顯示揮砍範圍
+                const fanR = (type === 'FIVE_COMBO' || type === 'FURY_BLADE') ? 11 : 10;
+                const fan = new THREE.Mesh(
+                    new THREE.RingGeometry(1.5, fanR, 40, 1, 0, Math.PI * 1.35),
+                    dangerMat
                 );
-                mesh.rotation.x = -Math.PI / 2;
-                mesh.position.copy(boss.pos);
-                mesh.position.y = 0.12;
-                mesh.rotation.z = bossGroup.rotation.y;
+                fan.rotation.x = -Math.PI / 2; fan.position.y = 0.1;
+                fan.rotation.z = bossGroup.rotation.y - Math.PI * 0.15;
+                group.add(fan);
+                const fanEdge = new THREE.Mesh(
+                    new THREE.RingGeometry(fanR * 0.92, fanR, 40, 1, 0, Math.PI * 1.35),
+                    edgeMat
+                );
+                fanEdge.rotation.x = -Math.PI / 2; fanEdge.position.y = 0.12;
+                fanEdge.rotation.z = fan.rotation.z; group.add(fanEdge);
             }
-            scene.add(mesh);
-            boss.telegraph = mesh;
+
+            // 不可防警示文字環
+            if (isUB) {
+                const warn = new THREE.Mesh(
+                    new THREE.RingGeometry(2.5, 2.9, 32),
+                    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.9, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
+                );
+                warn.rotation.x = -Math.PI / 2; warn.position.y = 0.2; group.add(warn);
+            }
+
+            group.position.set(boss.pos.x, 0, boss.pos.z);
+            scene.add(group);
+            boss.telegraph = group;
+
             const label = document.getElementById('boss-atk-name');
             if (label) {
                 label.innerText = ATTACK_LABELS[type] || type;
+                if (meta && meta.unblockable) label.style.color = '#ff4444';
+                else label.style.color = '#ffcc66';
                 label.classList.add('show');
             }
         }
 
+
         function beginParry() {
-            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD' || player.state.startsWith('SKILL') || player.state === 'DRINK') return;
+            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD' || player.state.startsWith('SKILL') || player.state === 'DRINK' || player.state === 'CHARGE' || player.state === 'SCOOP') return;
             if (player.parryTimer > 0) return;
             player.parryWindow = 0.34;
             player.parryTimer = 0.55;
             player.parrySuccess = false;
             player.isBlocking = true;
+        }
+
+        function beginGreatswordCharge() {
+            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD') return;
+            if (player.state === 'ATTACK' || player.state === 'RECOVERY' || player.state.startsWith('SKILL') || player.state === 'CHARGE' || player.state === 'SCOOP') return;
+            if (player.stamina < 18) return;
+            player.charging = true;
+            player.chargeLevel = 0;
+            player.state = 'CHARGE';
+            player.comboStep = 0;
+            player.attackHitDone = false;
+            slashArcMat.color.setHex(0xff6622);
+            slashArc2Mat.color.setHex(0xffaa44);
+            slashArcMat.opacity = 0.35;
+            createDamageNumber('蓄力', player.pos.clone().add(new THREE.Vector3(0, 2.3, 0)), 'SKILL');
+        }
+
+        function releaseGreatswordCharge() {
+            if (!player.charging && player.state !== 'CHARGE') return;
+            player.charging = false;
+            const lv = Math.min(3, 1 + Math.floor(player.chargeLevel / 0.7)); // 1~3
+            // 消耗與等級
+            const cost = 18 + lv * 10;
+            if (player.stamina < cost * 0.5) { // 不夠則弱斬
+                player.state = 'IDLE';
+                slashArcMat.opacity = 0;
+                return;
+            }
+            player.stamina = Math.max(0, player.stamina - cost);
+            player.state = 'ATTACK';
+            player.attackType = 'HEAVY';
+            player.comboStep = lv; // 借用 comboStep 表示蓄力等級
+            player.attackDuration = 0.95 + lv * 0.22;
+            player.attackTimer = player.attackDuration;
+            player.attackHitDone = false;
+            player.lastAttackTime = performance.now();
+            slashArcMat.color.setHex(lv >= 3 ? 0xff2200 : (lv === 2 ? 0xff6600 : 0xffaa44));
+            slashArc2Mat.color.setHex(0xff4400);
+            slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.85;
+            targetFov = 52 - lv * 2;
+            if (lv >= 2) createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.8, 0)), 20 + lv * 15, 0xff6622, null, 14);
+        }
+
+        function stunBossBrief(seconds) {
+            if (boss.state === 'STAGGERED' || boss.isBeingCrit) return;
+            clearBossTelegraph();
+            boss.state = 'STUNNED';
+            boss.timer = seconds;
+            createDamageNumber('擊暈!', boss.pos.clone().add(new THREE.Vector3(0, 5, 0)), 'CRIT');
+            createImpactFlash(boss.pos.clone().add(new THREE.Vector3(0, 3.5, 0)), 0xffee88, 3.2);
+            triggerCameraShake(0.5);
         }
 
         function onShiftTap() {
@@ -1248,15 +1780,34 @@
                 beginParry();
                 return;
             }
+            if (mode === 'scoop') {
+                // 大劍上撈斬：擊暈 1 秒
+                if (player.shiftArtCd > 0) return;
+                if (player.state === 'ROLL' || player.state === 'ATTACK' || player.state === 'CHARGE' || player.state.startsWith('SKILL') || player.state === 'DRINK') return;
+                if (player.stamina < 28) return;
+                player.stamina -= 28;
+                player.shiftArtCd = player.shiftCdMax || 10.0;
+                player.state = 'SCOOP';
+                player.attackDuration = 0.95;
+                player.attackTimer = 0.95;
+                player.attackHitDone = false;
+                slashArcMat.color.setHex(0xffcc66); slashArc2Mat.color.setHex(0xff8800);
+                slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.8;
+                const fwd = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
+                player.moveVel.copy(fwd.multiplyScalar(8));
+                return;
+            }
             if (mode === 'iai') {
                 // 太刀 Shift：防反窗口 1.5 秒（成功則居合+後跳），CD 5 秒
                 if (player.shiftArtCd > 0) return;
                 if (player.state === 'ROLL' || player.state === 'ATTACK' || player.state.startsWith('SKILL') || player.state === 'DRINK' || player.state === 'COUNTER') return;
                 if (player.stamina < 20) return;
                 player.stamina -= 20;
-                player.shiftArtCd = 5.0;
-                player.counterWindow = 1.5;
+                player.shiftArtCd = player.shiftCdMax || 10.0;
+                player.counterWindow = (selectedWeapon && selectedWeapon.counterSecs) || 0.7;
                 player.counterType = 'iai';
+                // 僅窗口期，不給無敵；成功觸發才 iframe
+                clearPlayerIframe();
                 createDamageNumber('防反', player.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'SKILL');
                 slashArcMat.color.setHex(0xffe0a0); slashArcMat.opacity = 0.35;
                 return;
@@ -1267,12 +1818,12 @@
                 if (player.state === 'ROLL' || player.state.startsWith('SKILL') || player.state === 'DRINK') return;
                 if (player.stamina < 22) return;
                 player.stamina -= 22;
-                player.shiftArtCd = 5.0;
+                player.shiftArtCd = player.shiftCdMax || 5.0;
                 player.state = 'FLASH_DASH';
                 player.attackDuration = 0.32;
                 player.attackTimer = 0.32;
                 player.attackHitDone = false;
-                player.iframe = true;
+                setPlayerIframe(0.35);
                 const moveDir = getMovementVector();
                 const forward = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
                 const dir = moveDir.lengthSq() > 0.01 ? moveDir.clone().normalize() : forward;
@@ -1283,11 +1834,23 @@
             }
         }
 
+        function setPlayerIframe(duration) {
+            player.iframe = true;
+            player.iframeTimer = Math.max(player.iframeTimer || 0, duration);
+        }
+        function clearPlayerIframe() {
+            player.iframe = false;
+            player.iframeTimer = 0;
+        }
+
         function tryCounterWindow() {
             if (player.counterWindow <= 0 || player.state === 'DEAD') return false;
+            // 已在反擊中則不再重入，避免狀態卡死
+            if (player.state === 'COUNTER') return true;
             const type = player.counterType || 'kenkiri';
             player.counterWindow = 0;
-            player.iframe = true;
+            player.counterType = type;
+            setPlayerIframe(1.2);
             const flash = document.getElementById('parry-flash');
             if (flash) { flash.style.opacity = '1'; setTimeout(() => flash.style.opacity = '0', 220); }
             triggerCameraShake(0.7); hitstopTimer = 0.15;
@@ -1374,8 +1937,7 @@
             if (player.parryWindow <= 0 || player.iframe || player.state === 'DEAD') return false;
             player.parrySuccess = true;
             player.parryWindow = 0;
-            player.iframe = true;
-            setTimeout(() => { if (player.state !== 'ROLL') player.iframe = false; }, 280);
+            setPlayerIframe(0.28);
             boss.posture = Math.min(boss.maxPosture, boss.posture + 95);
             createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.4, 0)), 70, 0xffdd44, null, 22);
             createImpactFlash(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 0xffee88, 3.5);
@@ -1432,7 +1994,7 @@
         }
 
         function handleEstusFlask() {
-            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD' || player.state.startsWith('SKILL') || player.state === 'DRINK') return;
+            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD' || player.state.startsWith('SKILL') || player.state === 'DRINK' || player.state === 'CHARGE' || player.state === 'SCOOP') return;
             if (player.flasks <= 0 || player.hp >= player.maxHp) return;
             
             player.flasks--;
@@ -1451,7 +2013,7 @@
 
         /* --- 6. 玩家動作與打擊判定（距離與流暢度大幅提升） --- */
         function handlePlayerAttack(type) {
-            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD' || player.state.startsWith('SKILL') || player.state === 'DRINK') return;
+            if (player.state === 'ROLL' || player.state === 'STAGGER' || player.state === 'DEAD' || player.state.startsWith('SKILL') || player.state === 'DRINK' || player.state === 'CHARGE' || player.state === 'SCOOP') return;
             // 後搖中不可連點；僅輕攻擊可在輕攻擊後搖末段接下一招
             const canCombo = (
                 type === 'LIGHT' &&
@@ -1485,10 +2047,17 @@
                     slashArcMat.color.setHex(0xb8d4ff); slashArc2Mat.color.setHex(0x88aaff);
                 } else if (st === 'dagger') {
                     slashArcMat.color.setHex(0xff8899); slashArc2Mat.color.setHex(0xff4466);
+                } else if (st === 'greatsword') {
+                    slashArcMat.color.setHex(0xffaa55); slashArc2Mat.color.setHex(0xff6600);
                 } else if (player.comboStep === 1) { slashArcMat.color.setHex(0xffffff); slashArc2Mat.color.setHex(0xccddff); }
                 else if (player.comboStep === 2) { slashArcMat.color.setHex(0xddddff); slashArc2Mat.color.setHex(0xaabbff); }
                 else { slashArcMat.color.setHex(0xffcc44); slashArc2Mat.color.setHex(0xffaa00); }
             } else {
+                // 大劍重擊改走蓄力系統
+                if ((selectedWeapon && selectedWeapon.skillStyle) === 'greatsword') {
+                    beginGreatswordCharge();
+                    return;
+                }
                 if (player.stamina < 32) return; player.stamina -= 32;
                 player.comboStep = 0;
                 player.state = 'ATTACK'; player.attackType = 'HEAVY';
@@ -1511,10 +2080,19 @@
                 if (player.stamina < 20) return;
                 player.stamina -= 20;
                 player.qCooldown = player.skillCdMax;
+                if (style === 'greatsword') {
+                    // 劍氣震盪：近身震波
+                    player.state = 'SKILL_Q';
+                    player.attackDuration = 1.0; player.attackTimer = 1.0; player.attackHitDone = false;
+                    slashArcMat.color.setHex(0xff7722); slashArc2Mat.color.setHex(0xff4400);
+                    slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.8;
+                    return;
+                }
                 if (style === 'katana') {
                     // 見切：1.5 秒防反窗口
-                    player.counterWindow = 1.5;
+                    player.counterWindow = (selectedWeapon && selectedWeapon.counterSecs) || 0.7;
                     player.counterType = 'kenkiri';
+                    clearPlayerIframe();
                     createDamageNumber('見切', player.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'SKILL');
                     slashArcMat.color.setHex(0x88ccff); slashArcMat.opacity = 0.4;
                     return;
@@ -1539,6 +2117,15 @@
                 if (player.stamina < 28) return;
                 player.stamina -= 28;
                 player.eCooldown = player.skillCdMax;
+                if (style === 'greatsword') {
+                    // 重踏突進
+                    player.state = 'SKILL_E';
+                    player.attackDuration = 1.15; player.attackTimer = 1.15; player.attackHitDone = false;
+                    player.velocity.copy(lookDir.clone().multiplyScalar(18));
+                    slashArcMat.color.setHex(0xffaa44); slashArc2Mat.color.setHex(0xff6600);
+                    slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.8;
+                    return;
+                }
                 if (style === 'katana') {
                     // 登龍：躍起下墜重擊
                     player.state = 'SKILL_E';
@@ -1646,9 +2233,27 @@
             if (player.eCooldown > 0) player.eCooldown = Math.max(0, player.eCooldown - dt);
             if (player.parryTimer > 0) player.parryTimer = Math.max(0, player.parryTimer - dt);
             if (player.parryWindow > 0) player.parryWindow = Math.max(0, player.parryWindow - dt);
+            // 無敵計時（防止永久 iframe）
+            if (player.iframeTimer > 0) {
+                player.iframeTimer -= dt;
+                if (player.iframeTimer <= 0) {
+                    player.iframeTimer = 0;
+                    // 翻滾／反擊動畫中由各自狀態管理，這裡只清「超時保險」
+                    if (player.state !== 'ROLL' && player.state !== 'COUNTER' && player.state !== 'FLASH_DASH') {
+                        player.iframe = false;
+                    }
+                }
+            }
             if (player.counterWindow > 0) {
                 player.counterWindow = Math.max(0, player.counterWindow - dt);
-                if (player.counterWindow <= 0) slashArcMat.opacity = Math.min(slashArcMat.opacity, 0.05);
+                if (player.counterWindow <= 0) {
+                    player.counterType = null;
+                    slashArcMat.opacity = Math.min(slashArcMat.opacity, 0.05);
+                    // 窗口結束且未觸發反擊：確保沒有殘留無敵
+                    if (player.state !== 'COUNTER' && player.state !== 'ROLL') {
+                        clearPlayerIframe();
+                    }
+                }
             }
             // 流血 DOT
             if (bossStatus.bleedTime > 0 && boss.state !== 'DEAD') {
@@ -1710,7 +2315,7 @@
                 player.state = 'ROLL';
                 player.rollMax = 0.72;
                 player.rollTimer = player.rollMax;
-                player.iframe = true;
+                setPlayerIframe(0.45);
                 player.grounded = false;
                 player.vertVel = 5.5;
                 const moveDir = getMovementVector();
@@ -1725,7 +2330,10 @@
                     // 與鏡頭一致的「角色前方」（three 中角色朝 +Z）
                     dir.set(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
                 }
-                player.moveVel.set(dir.x * PHYS.rollImpulse, 0, dir.z * PHYS.rollImpulse);
+                const rollM = (selectedWeapon && selectedWeapon.rollMul) || 1;
+                player.moveVel.set(dir.x * PHYS.rollImpulse * rollM, 0, dir.z * PHYS.rollImpulse * rollM);
+                player.rollMax = 0.72 / Math.max(0.85, Math.min(1.4, rollM));
+                player.rollTimer = player.rollMax;
                 player.velocity.copy(player.moveVel);
                 playerGroup.rotation.y = Math.atan2(dir.x, dir.z);
                 targetFov = 70;
@@ -1756,18 +2364,29 @@
                 knightMesh.rightArm.rotation.x = -0.6 * tuck;
                 knightMesh.leftArm.rotation.x = -0.5 * tuck;
                 // 翻滾末段解除無敵
-                if (rollProgress > 0.62) player.iframe = false;
+                if (rollProgress > 0.55) {
+                    player.iframe = false;
+                    player.iframeTimer = 0;
+                }
+                // 末段逐漸舒展，避免瞬間站直
+                if (rollProgress > 0.7) {
+                    const ease = (rollProgress - 0.7) / 0.3;
+                    const k = ease * ease;
+                    knightMesh.body.rotation.x *= (1 - k * 0.85);
+                    knightMesh.body.rotation.z *= (1 - k * 0.85);
+                    knightMesh.legL.rotation.x *= (1 - k * 0.7);
+                    knightMesh.legR.rotation.x *= (1 - k * 0.7);
+                    knightMesh.rightArm.rotation.x *= (1 - k * 0.7);
+                    knightMesh.leftArm.rotation.x *= (1 - k * 0.7);
+                }
                 if (player.rollTimer <= 0) {
                     player.state = 'RECOVERY';
                     player.recoveryFrom = 'ROLL';
-                    player.recoveryTimer = 0.22;
-                    player.iframe = false;
+                    player.recoveryTimer = 0.32; // 稍長但下面用插值軟化
+                    clearPlayerIframe();
                     player.grounded = true;
                     playerGroup.position.y = 0;
-                    knightMesh.body.rotation.set(0, 0, 0);
-                    knightMesh.legL.rotation.x = 0;
-                    knightMesh.legR.rotation.x = 0;
-                    targetFov = 60;
+                    targetFov = 58;
                 }
                 // 邊界
                 playerGroup.position.x = THREE.MathUtils.clamp(playerGroup.position.x, -PHYS.arenaLimit, PHYS.arenaLimit);
@@ -1812,6 +2431,64 @@
                     player.state = 'RECOVERY';
                     player.recoveryFrom = 'SKILL';
                     player.recoveryTimer = 0.4;
+                    slashArcMat.opacity = 0;
+                }
+                return;
+            }
+
+            // 大劍蓄力中
+            if (player.state === 'CHARGE') {
+                if (!player.charging && !(keys['MouseRight'])) {
+                    // 若意外沒有 mouseup
+                }
+                // 仍按住則累積
+                const stillHeld = player.charging;
+                if (stillHeld) {
+                    player.chargeLevel = Math.min(player.chargeMax, player.chargeLevel + dt);
+                    player.stamina = Math.max(0, player.stamina - 8 * dt);
+                    const t = player.chargeLevel / player.chargeMax;
+                    knightMesh.rightArm.rotation.x = -Math.PI * 0.35 - Math.PI * 0.55 * t;
+                    knightMesh.swordGroup.rotation.z = -Math.PI * 0.15 * t;
+                    knightMesh.body.rotation.x = -0.15 * t;
+                    playerGroup.position.y = 0.15 * t;
+                    slashArcMat.opacity = 0.25 + t * 0.5;
+                    slashArc.rotation.set(Math.PI/2, 0, t * 0.5);
+                    // 滿蓄特效
+                    if (t >= 0.95 && Math.random() < 0.2) {
+                        createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)), 3, 0xff4400, new THREE.Vector3(0, 1, 0), 6);
+                    }
+                    if (player.stamina <= 0) releaseGreatswordCharge();
+                }
+                return;
+            }
+
+            if (player.state === 'SCOOP') {
+                player.attackTimer -= dt;
+                const progress = 1 - (player.attackTimer / player.attackDuration);
+                const curve = easeOutCubic(progress);
+                // 上撈：由下往上
+                knightMesh.rightArm.rotation.x = Math.PI * 0.35 - Math.PI * 1.4 * curve;
+                knightMesh.swordGroup.rotation.z = Math.PI * 0.3 - Math.PI * 1.6 * curve;
+                knightMesh.body.rotation.x = 0.15 - 0.35 * curve;
+                playerGroup.position.x += player.moveVel.x * dt * 0.6;
+                playerGroup.position.z += player.moveVel.z * dt * 0.6;
+                player.moveVel.multiplyScalar(Math.exp(-4 * dt));
+                slashArc.rotation.set(-0.4 + curve, Math.PI/2, Math.PI * curve);
+                slashArcMat.opacity = Math.max(0, 1 - progress);
+                if (!player.attackHitDone && progress > 0.38) {
+                    player.attackHitDone = true;
+                    const dist = player.pos.distanceTo(boss.pos);
+                    if (dist < 11) {
+                        applyBossDamage(320, 110, 'CRIT', boss.pos.clone().add(new THREE.Vector3(0, 3.2, 0)));
+                        stunBossBrief(2.0);
+                        createAOEShockwave(player.pos.clone(), 1.1, 0xffcc55, 34);
+                        spawnWeaponSlashVFX(0xffcc66, 2);
+                    }
+                }
+                if (player.attackTimer <= 0) {
+                    player.state = 'RECOVERY';
+                    player.recoveryFrom = 'HEAVY';
+                    player.recoveryTimer = 0.45;
                     slashArcMat.opacity = 0;
                 }
                 return;
@@ -1878,8 +2555,10 @@
                     if (playerGroup.position.y <= 0) { playerGroup.position.y = 0; player.vertVel = 0; }
                 }
                 if (player.attackTimer <= 0) {
-                    player.state = 'RECOVERY'; player.recoveryTimer = 0.32; player.recoveryFrom = 'SKILL';
-                    player.iframe = false; playerGroup.position.y = 0;
+                    player.state = 'RECOVERY'; player.recoveryTimer = 0.28; player.recoveryFrom = 'SKILL';
+                    clearPlayerIframe();
+                    player.counterType = null;
+                    playerGroup.position.y = 0;
                     slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
                 }
                 return;
@@ -1892,7 +2571,19 @@
                 const style = (selectedWeapon && selectedWeapon.skillStyle) || 'knight';
                 
                 if (player.state === 'SKILL_Q') {
-                    if (style === 'dagger') {
+                    if (style === 'greatsword') {
+                        knightMesh.rightArm.rotation.x = -Math.PI * 1.1 * curve;
+                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.6 * curve;
+                        knightMesh.body.rotation.x = -0.25 * curve;
+                        if (!player.attackHitDone && progress > 0.45) {
+                            player.attackHitDone = true;
+                            const dist = player.pos.distanceTo(boss.pos);
+                            if (dist < 10) {
+                                applyBossDamage(420, 100, 'SKILL', boss.pos.clone().add(new THREE.Vector3(0, 3.2, 0)));
+                                createAOEShockwave(player.pos.clone(), 1.5, 0xff6622, 42);
+                            }
+                        }
+                    } else if (style === 'dagger') {
                         playerGroup.position.x += player.moveVel.x * dt;
                         playerGroup.position.z += player.moveVel.z * dt;
                         player.moveVel.multiplyScalar(Math.exp(-6 * dt));
@@ -1900,7 +2591,7 @@
                         knightMesh.swordGroup.rotation.z = -Math.PI * 1.4 * curve;
                         if (!player.attackHitDone && progress > 0.35) {
                             player.attackHitDone = true;
-                            player.iframe = false;
+                            clearPlayerIframe();
                             const dist = player.pos.distanceTo(boss.pos);
                             if (dist < 6.5) {
                                 applyBossDamage(95, 40, 'SKILL', boss.pos.clone().add(new THREE.Vector3(0, 3.2, 0)));
@@ -1922,7 +2613,16 @@
                         }
                     }
                 } else if (player.state === 'SKILL_E') {
-                    if (style === 'katana') {
+                    if (style === 'greatsword') {
+                        if (progress > 0.2 && progress < 0.55) playerGroup.position.addScaledVector(player.velocity, dt * 1.8);
+                        knightMesh.rightArm.rotation.x = -Math.PI * 1.0 * curve;
+                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.5 * curve;
+                        if (!player.attackHitDone && progress > 0.5) {
+                            player.attackHitDone = true;
+                            checkPlayerHitbox();
+                            createAOEShockwave(player.pos.clone(), 1.0, 0xffaa44, 30);
+                        }
+                    } else if (style === 'katana') {
                         // 登龍：躍起蓄力 → 龍氣下墜
                         if (progress < 0.42) {
                             playerGroup.position.y = Math.max(playerGroup.position.y, 0) + player.vertVel * dt;
@@ -1980,7 +2680,7 @@
                     player.state = 'RECOVERY';
                     player.recoveryFrom = 'SKILL';
                     player.recoveryTimer = 0.38;
-                    player.iframe = false;
+                    clearPlayerIframe();
                     playerGroup.position.y = 0;
                     slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
                     targetFov = 58;
@@ -1990,31 +2690,39 @@
 
             if (player.state === 'RECOVERY') {
                 player.recoveryTimer -= dt;
-                const k = 1 - Math.exp(-10 * dt);
+                // 翻滾後搖用更慢的指數回正，手感更柔
+                const blend = player.recoveryFrom === 'ROLL' ? 7 : 10;
+                const k = 1 - Math.exp(-blend * dt);
                 knightMesh.rightArm.rotation.x += (0 - knightMesh.rightArm.rotation.x) * k;
                 knightMesh.rightArm.rotation.y += (0 - knightMesh.rightArm.rotation.y) * k;
                 knightMesh.rightArm.rotation.z += (0 - knightMesh.rightArm.rotation.z) * k;
+                knightMesh.leftArm.rotation.x += (0 - knightMesh.leftArm.rotation.x) * k;
                 knightMesh.swordGroup.rotation.x += (0 - knightMesh.swordGroup.rotation.x) * k;
                 knightMesh.swordGroup.rotation.z += (0 - knightMesh.swordGroup.rotation.z) * k;
                 knightMesh.body.rotation.x += (0 - knightMesh.body.rotation.x) * k;
                 knightMesh.body.rotation.y += (0 - knightMesh.body.rotation.y) * k;
-                playerGroup.position.y += (0 - playerGroup.position.y) * k;
-                slashArcMat.opacity = Math.max(0, slashArcMat.opacity - dt * 4);
-                slashArc2Mat.opacity = Math.max(0, slashArc2Mat.opacity - dt * 4);
-                // 後搖中可緩慢移動
-                const moveVecR = getMovementVector();
-                if (moveVecR.lengthSq() > 0) {
-                    playerGroup.position.addScaledVector(moveVecR, 3.2 * dt);
+                knightMesh.body.rotation.z += (0 - knightMesh.body.rotation.z) * k;
+                if (knightMesh.legL) {
+                    knightMesh.legL.rotation.x += (0 - knightMesh.legL.rotation.x) * k;
+                    knightMesh.legR.rotation.x += (0 - knightMesh.legR.rotation.x) * k;
                 }
+                playerGroup.position.y += (0 - playerGroup.position.y) * k;
+
                 if (player.recoveryTimer <= 0) {
                     player.state = 'IDLE';
                     player.recoveryFrom = null;
-                    knightMesh.rightArm.rotation.set(0,0,0);
-                    knightMesh.swordGroup.rotation.set(0,0,0);
-                    knightMesh.body.rotation.set(0,0,0);
-                    playerGroup.position.y = 0;
-                    slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
-                    targetFov = 60;
+                    clearPlayerIframe();
+                }
+                // 翻滾後搖允許提前移動（不完全鎖死）
+                if (player.recoveryFrom === 'ROLL') {
+                    const moveVecR = getMovementVector();
+                    if (moveVecR.lengthSq() > 0) {
+                        playerGroup.position.addScaledVector(moveVecR, 3.8 * dt);
+                        if (!player.lockOn) {
+                            const ang = Math.atan2(moveVecR.x, moveVecR.z);
+                            playerGroup.rotation.y = THREE.MathUtils.lerp(playerGroup.rotation.y, ang, 1 - Math.exp(-6 * dt));
+                        }
+                    }
                 }
                 return;
             }
@@ -2035,103 +2743,182 @@
 
                 if (player.attackType === 'LIGHT') {
                     const style = (selectedWeapon && selectedWeapon.skillStyle) || 'knight';
-                    // 命中幀武器特效
+                    // 命中幀武器特效 + 全身重心轉移
                     if (!player.attackHitDone && progress > 0.4 && progress < 0.45) {
                         if (style === 'katana') spawnWeaponSlashVFX(0x9fd0ff, player.comboStep);
                         else if (style === 'dagger') spawnWeaponSlashVFX(0xff6688, 1.2);
+                        else if (style === 'greatsword') spawnWeaponSlashVFX(0xffaa55, 2.0);
                         else spawnWeaponSlashVFX(0xcce0ff, 1.0);
                     }
+                    // 通用：髖轉、肩送、重心下沉（避免「火柴人抽搐」）
+                    const weight = Math.sin(swingCurve * Math.PI);
+                    knightMesh.headGroup.rotation.y = weight * 0.12 * (player.comboStep === 2 ? -1 : 1);
+                    knightMesh.headGroup.rotation.x = -0.08 * wind - 0.05 * swingCurve;
                     if (style === 'katana') {
                         // MH 太刀：踏步縱斬 → 迴身圓月斬 → 練氣突進斬
                         slashArcMat.color.setHex(0xb8d4ff); slashArc2Mat.color.setHex(0x88aaff);
                         if (player.comboStep === 1) {
-                            // Fade Slash：上段→下段
-                            knightMesh.rightArm.rotation.x = -Math.PI * 0.4 * wind - Math.PI * 1.05 * swingCurve;
-                            knightMesh.rightArm.rotation.z = -0.25 * swingCurve;
-                            knightMesh.swordGroup.rotation.z = -Math.PI * 1.55 * swingCurve;
-                            knightMesh.body.rotation.y = 0.48 * Math.sin(swingCurve * Math.PI);
-                            knightMesh.body.rotation.x = -0.12 * swingCurve;
+                            // Fade Slash：上段蓄力→全身下壓
+                            knightMesh.rightArm.rotation.x = -Math.PI * 0.55 * wind - Math.PI * 1.25 * swingCurve;
+                            knightMesh.rightArm.rotation.z = -0.4 * swingCurve;
+                            knightMesh.leftArm.rotation.x = 0.2 * wind - 0.35 * swingCurve;
+                            knightMesh.swordGroup.rotation.z = -Math.PI * 1.75 * swingCurve;
+                            knightMesh.body.rotation.y = 0.65 * Math.sin(swingCurve * Math.PI);
+                            knightMesh.body.rotation.x = -0.08 * wind - 0.22 * swingCurve;
+                            knightMesh.body.rotation.z = -0.12 * swingCurve;
+                            knightMesh.legR.rotation.x = 0.35 * swingCurve;
+                            knightMesh.legL.rotation.x = -0.25 * swingCurve;
                             const step = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
-                            if (progress > 0.25 && progress < 0.5) playerGroup.position.addScaledVector(step, 5.5 * dt);
-                            slashArc.rotation.set(Math.PI/2.3, 0.55, Math.PI * swingCurve * 1.35);
-                            slashArc2.rotation.set(Math.PI/2.1, 0.3, Math.PI * swingCurve * 1.1);
+                            if (progress > 0.2 && progress < 0.55) playerGroup.position.addScaledVector(step, 7 * dt);
+                            slashArc.rotation.set(Math.PI/2.3, 0.55, Math.PI * swingCurve * 1.45);
+                            slashArc2.rotation.set(Math.PI/2.1, 0.3, Math.PI * swingCurve * 1.2);
                         } else if (player.comboStep === 2) {
-                            // 橫向圓弧（Spirit Blade 前段感）
-                            knightMesh.rightArm.rotation.y = Math.PI * 1.35 * Math.sin(swingCurve * Math.PI);
-                            knightMesh.rightArm.rotation.x = -Math.PI * 0.4;
-                            knightMesh.swordGroup.rotation.z = Math.PI * 1.25 * swingCurve;
-                            knightMesh.swordGroup.rotation.x = 0.25 * swingCurve;
-                            knightMesh.body.rotation.y = -0.7 * Math.sin(swingCurve * Math.PI);
-                            slashArc.rotation.set(Math.PI/2, -0.65, -Math.PI * swingCurve * 1.55);
-                            slashArc2.rotation.set(Math.PI/2, -0.35, -Math.PI * swingCurve * 1.2);
+                            // 迴身橫斬：軀幹大幅扭轉
+                            knightMesh.rightArm.rotation.y = Math.PI * 1.55 * Math.sin(swingCurve * Math.PI);
+                            knightMesh.rightArm.rotation.x = -Math.PI * 0.5;
+                            knightMesh.leftArm.rotation.y = -0.4 * swingCurve;
+                            knightMesh.swordGroup.rotation.z = Math.PI * 1.45 * swingCurve;
+                            knightMesh.swordGroup.rotation.x = 0.35 * swingCurve;
+                            knightMesh.body.rotation.y = -0.95 * Math.sin(swingCurve * Math.PI);
+                            knightMesh.body.rotation.z = 0.18 * Math.sin(swingCurve * Math.PI);
+                            knightMesh.legL.rotation.x = 0.3 * swingCurve;
+                            knightMesh.legR.rotation.x = -0.2 * swingCurve;
+                            slashArc.rotation.set(Math.PI/2, -0.65, -Math.PI * swingCurve * 1.65);
+                            slashArc2.rotation.set(Math.PI/2, -0.35, -Math.PI * swingCurve * 1.3);
                         } else {
-                            // 第三段：小跳＋突進下劈（接近氣刃斬節奏）
+                            // 第三段：跳斬突進
                             const leap = Math.sin(Math.min(1, progress / 0.48) * Math.PI);
-                            knightMesh.rightArm.rotation.x = -Math.PI * 1.25 * Math.max(swingCurve, wind * 0.4);
-                            knightMesh.swordGroup.rotation.x = -Math.PI * 0.65 * swingCurve;
-                            knightMesh.swordGroup.rotation.z = -Math.PI * 0.4 * swingCurve;
-                            knightMesh.body.rotation.x = -0.25 * leap;
-                            playerGroup.position.y = leap * 1.35;
+                            knightMesh.rightArm.rotation.x = -Math.PI * 1.4 * Math.max(swingCurve, wind * 0.45);
+                            knightMesh.leftArm.rotation.x = -0.5 * leap;
+                            knightMesh.swordGroup.rotation.x = -Math.PI * 0.75 * swingCurve;
+                            knightMesh.swordGroup.rotation.z = -Math.PI * 0.5 * swingCurve;
+                            knightMesh.body.rotation.x = -0.35 * leap;
+                            knightMesh.body.rotation.y = 0.25 * swingCurve;
+                            playerGroup.position.y = leap * 1.55;
                             const fwd = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
-                            if (progress > 0.28 && progress < 0.62) playerGroup.position.addScaledVector(fwd, 11 * dt);
-                            slashArc.rotation.set(0.3, Math.PI/2, Math.PI * swingCurve * 1.65);
-                            slashArc2.rotation.set(0.15, Math.PI/2, Math.PI * swingCurve * 1.35);
+                            if (progress > 0.25 && progress < 0.65) playerGroup.position.addScaledVector(fwd, 13 * dt);
+                            slashArc.rotation.set(0.3, Math.PI/2, Math.PI * swingCurve * 1.75);
+                            slashArc2.rotation.set(0.15, Math.PI/2, Math.PI * swingCurve * 1.4);
                             slashArcMat.color.setHex(0xd0e8ff);
                         }
+                    } else if (style === 'greatsword') {
+                        // MH 大劍輕擊：慢、沉、側步斜斬 → 上撩 → 過頂砸
+                        slashArcMat.color.setHex(0xffaa55); slashArc2Mat.color.setHex(0xff7700);
+                        const fwd = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
+                        if (player.comboStep === 1) {
+                            // 斜下斬：全身下沉送刀
+                            knightMesh.rightArm.rotation.x = -Math.PI * 0.45 * wind - Math.PI * 1.35 * swingCurve;
+                            knightMesh.rightArm.rotation.z = -0.55 * swingCurve;
+                            knightMesh.leftArm.rotation.x = -0.4 * swingCurve;
+                            knightMesh.swordGroup.rotation.z = -Math.PI * 1.95 * swingCurve;
+                            knightMesh.body.rotation.y = 0.5 * Math.sin(swingCurve * Math.PI);
+                            knightMesh.body.rotation.x = -0.12 * wind - 0.28 * swingCurve;
+                            knightMesh.body.rotation.z = -0.15 * swingCurve;
+                            knightMesh.legR.rotation.x = 0.4 * swingCurve;
+                            knightMesh.legL.rotation.x = -0.15 * swingCurve;
+                            if (progress > 0.25 && progress < 0.6) playerGroup.position.addScaledVector(fwd, 5.5 * dt);
+                            slashArc.rotation.set(Math.PI/2.4, 0.6, Math.PI * swingCurve * 1.35);
+                        } else if (player.comboStep === 2) {
+                            // 上撩：後仰再撈
+                            knightMesh.rightArm.rotation.x = Math.PI * 0.35 * wind - Math.PI * 1.5 * swingCurve;
+                            knightMesh.leftArm.rotation.x = 0.3 * wind - 0.5 * swingCurve;
+                            knightMesh.swordGroup.rotation.z = Math.PI * 0.35 - Math.PI * 1.6 * swingCurve;
+                            knightMesh.body.rotation.x = 0.2 * wind - 0.4 * swingCurve;
+                            knightMesh.legL.rotation.x = -0.35 * swingCurve;
+                            slashArc.rotation.set(-0.35, Math.PI/2, Math.PI * swingCurve * 1.25);
+                        } else {
+                            // 過頂重砸
+                            const leap = Math.sin(Math.min(1, progress / 0.5) * Math.PI);
+                            knightMesh.rightArm.rotation.x = -Math.PI * 1.5 * Math.max(swingCurve, wind * 0.55);
+                            knightMesh.leftArm.rotation.x = -0.6 * leap;
+                            knightMesh.swordGroup.rotation.z = -Math.PI * 2.1 * swingCurve;
+                            knightMesh.body.rotation.x = -0.45 * leap;
+                            knightMesh.body.rotation.z = 0.1 * swingCurve;
+                            playerGroup.position.y = leap * 1.15;
+                            if (progress > 0.3 && progress < 0.65) playerGroup.position.addScaledVector(fwd, 6.5 * dt);
+                            slashArc.rotation.set(0.25, Math.PI/2, Math.PI * swingCurve * 1.75);
+                        }
+                        slashArc2.rotation.copy(slashArc.rotation);
                     } else if (style === 'dagger') {
                         // 刺客連刺：左右交替＋短突進
                         slashArcMat.color.setHex(0xff8899); slashArc2Mat.color.setHex(0xff4466);
                         const flick = Math.sin(swingCurve * Math.PI);
                         const side = player.comboStep === 2 ? 1 : -1;
-                        knightMesh.rightArm.rotation.x = -Math.PI * 0.65 * flick;
-                        knightMesh.rightArm.rotation.y = side * Math.PI * 0.55 * flick;
-                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.05 * swingCurve;
-                        knightMesh.body.rotation.y = side * 0.28 * flick;
+                        knightMesh.rightArm.rotation.x = -Math.PI * 0.85 * flick;
+                        knightMesh.rightArm.rotation.y = side * Math.PI * 0.75 * flick;
+                        knightMesh.leftArm.rotation.y = -side * 0.4 * flick;
+                        knightMesh.leftArm.rotation.x = -0.3 * flick;
+                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.25 * swingCurve;
+                        knightMesh.body.rotation.y = side * 0.45 * flick;
+                        knightMesh.body.rotation.z = side * 0.12 * flick;
+                        knightMesh.legL.rotation.x = side * 0.25 * flick;
+                        knightMesh.legR.rotation.x = -side * 0.2 * flick;
                         const fwd = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
-                        if (progress > 0.3 && progress < 0.55) playerGroup.position.addScaledVector(fwd, 7 * dt);
+                        if (progress > 0.25 && progress < 0.6) playerGroup.position.addScaledVector(fwd, 9 * dt);
                         if (player.comboStep === 3) {
-                            knightMesh.rightArm.rotation.x = -Math.PI * 0.9 * flick;
-                            if (progress > 0.35 && progress < 0.6) playerGroup.position.addScaledVector(fwd, 10 * dt);
+                            knightMesh.rightArm.rotation.x = -Math.PI * 1.1 * flick;
+                            if (progress > 0.3 && progress < 0.65) playerGroup.position.addScaledVector(fwd, 12 * dt);
                         }
                         slashArc.rotation.set(Math.PI/2, side * 0.5, Math.PI * swingCurve);
                         slashArc2.rotation.set(Math.PI/2, side * 0.2, Math.PI * swingCurve * 0.85);
                     } else if (player.comboStep === 1) {
-                        const raise = -Math.PI * 0.35 * wind;
-                        const cut = -Math.PI * 0.75 * swingCurve;
+                        const raise = -Math.PI * 0.5 * wind;
+                        const cut = -Math.PI * 0.95 * swingCurve;
                         knightMesh.rightArm.rotation.x = raise + cut;
-                        knightMesh.rightArm.rotation.z = -Math.PI * 0.22 * swingCurve;
-                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.25 * swingCurve;
-                        knightMesh.body.rotation.y = 0.32 * Math.sin(swingCurve * Math.PI);
-                        knightMesh.body.rotation.x = -0.08 * swingCurve;
-                        slashArc.rotation.set(Math.PI/2, Math.PI/3.2, Math.PI * swingCurve * 1.2);
-                        slashArc2.rotation.set(Math.PI/2, Math.PI/5, Math.PI * swingCurve);
+                        knightMesh.rightArm.rotation.z = -Math.PI * 0.35 * swingCurve;
+                        knightMesh.leftArm.rotation.x = 0.15 * wind - 0.25 * swingCurve;
+                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.45 * swingCurve;
+                        knightMesh.body.rotation.y = 0.45 * Math.sin(swingCurve * Math.PI);
+                        knightMesh.body.rotation.x = -0.15 * swingCurve;
+                        knightMesh.body.rotation.z = -0.1 * swingCurve;
+                        knightMesh.legR.rotation.x = 0.3 * swingCurve;
+                        const step = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
+                        if (progress > 0.28 && progress < 0.55) playerGroup.position.addScaledVector(step, 5 * dt);
+                        slashArc.rotation.set(Math.PI/2, Math.PI/3.2, Math.PI * swingCurve * 1.3);
+                        slashArc2.rotation.set(Math.PI/2, Math.PI/5, Math.PI * swingCurve * 1.1);
                     } else if (player.comboStep === 2) {
-                        knightMesh.rightArm.rotation.x = -Math.PI * 0.22 - Math.PI * 0.12 * wind;
-                        knightMesh.rightArm.rotation.y = Math.PI * 1.05 * Math.sin(swingCurve * Math.PI);
-                        knightMesh.swordGroup.rotation.x = Math.PI * 0.2 * swingCurve;
-                        knightMesh.swordGroup.rotation.z = Math.PI * swingCurve * 1.0;
-                        knightMesh.body.rotation.y = -0.38 * Math.sin(swingCurve * Math.PI);
-                        slashArc.rotation.set(Math.PI/2, -Math.PI/3.2, -Math.PI * swingCurve * 1.15);
-                        slashArc2.rotation.set(Math.PI/2, -Math.PI/5, -Math.PI * swingCurve);
+                        knightMesh.rightArm.rotation.x = -Math.PI * 0.3 - Math.PI * 0.2 * wind;
+                        knightMesh.rightArm.rotation.y = Math.PI * 1.25 * Math.sin(swingCurve * Math.PI);
+                        knightMesh.leftArm.rotation.y = -0.35 * swingCurve;
+                        knightMesh.swordGroup.rotation.x = Math.PI * 0.3 * swingCurve;
+                        knightMesh.swordGroup.rotation.z = Math.PI * swingCurve * 1.2;
+                        knightMesh.body.rotation.y = -0.55 * Math.sin(swingCurve * Math.PI);
+                        knightMesh.body.rotation.z = 0.12 * Math.sin(swingCurve * Math.PI);
+                        slashArc.rotation.set(Math.PI/2, -Math.PI/3.2, -Math.PI * swingCurve * 1.3);
+                        slashArc2.rotation.set(Math.PI/2, -Math.PI/5, -Math.PI * swingCurve * 1.1);
                     } else {
                         const leap = Math.sin(Math.min(1, progress / 0.55) * Math.PI);
-                        knightMesh.rightArm.rotation.x = -Math.PI * 1.05 * Math.sin(Math.max(swingCurve, wind * 0.5) * Math.PI);
-                        knightMesh.swordGroup.rotation.x = -Math.PI * 0.85 * swingCurve;
-                        knightMesh.body.rotation.x = -0.28 * leap;
-                        playerGroup.position.y = leap * 1.55;
-                        slashArc.rotation.set(0.18, Math.PI/2, Math.PI * swingCurve * 1.45);
-                        slashArc2.rotation.set(0.12, Math.PI/2, Math.PI * swingCurve * 1.2);
+                        knightMesh.rightArm.rotation.x = -Math.PI * 1.2 * Math.sin(Math.max(swingCurve, wind * 0.55) * Math.PI);
+                        knightMesh.leftArm.rotation.x = -0.4 * leap;
+                        knightMesh.swordGroup.rotation.x = -Math.PI * 1.0 * swingCurve;
+                        knightMesh.body.rotation.x = -0.38 * leap;
+                        playerGroup.position.y = leap * 1.7;
+                        const step = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
+                        if (progress > 0.3 && progress < 0.6) playerGroup.position.addScaledVector(step, 6 * dt);
+                        slashArc.rotation.set(0.18, Math.PI/2, Math.PI * swingCurve * 1.55);
+                        slashArc2.rotation.set(0.12, Math.PI/2, Math.PI * swingCurve * 1.3);
                     }
                 } else {
-                    // 重擊：明顯蓄力再砸下
-                    const charge = Math.min(1, progress / 0.42);
-                    const smash = progress < 0.42 ? 0 : easeOutBack(Math.min(1, (progress - 0.42) / 0.35));
-                    knightMesh.rightArm.rotation.x = -Math.PI * 0.95 * charge;
-                    knightMesh.swordGroup.rotation.z = -Math.PI * 0.2 * charge - Math.PI * 1.9 * smash;
-                    knightMesh.body.rotation.x = -0.25 * charge + 0.15 * smash;
-                    playerGroup.position.y = charge * 0.55 * (1 - smash);
-                    slashArc.rotation.set(Math.PI/2, 0.1, Math.PI * smash * 2.0);
-                    slashArc2.rotation.set(Math.PI/2, -0.1, Math.PI * smash * 1.7);
+                    // 重擊 / 大劍真蓄力斬
+                    const isGS = (selectedWeapon && selectedWeapon.skillStyle) === 'greatsword';
+                    const lv = isGS ? Math.max(1, player.comboStep || 1) : 1;
+                    const charge = Math.min(1, progress / (isGS ? 0.28 : 0.42));
+                    const smash = progress < (isGS ? 0.28 : 0.42) ? 0 : easeOutBack(Math.min(1, (progress - (isGS ? 0.28 : 0.42)) / (isGS ? 0.4 : 0.35)));
+                    knightMesh.rightArm.rotation.x = -Math.PI * (0.9 + lv * 0.08) * charge;
+                    knightMesh.swordGroup.rotation.z = -Math.PI * 0.25 * charge - Math.PI * (1.7 + lv * 0.25) * smash;
+                    knightMesh.body.rotation.x = -0.3 * charge + 0.2 * smash;
+                    playerGroup.position.y = charge * (0.4 + lv * 0.15) * (1 - smash);
+                    if (isGS && smash > 0.1 && smash < 0.5) {
+                        const fwd = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
+                        playerGroup.position.addScaledVector(fwd, (3 + lv * 2) * dt);
+                    }
+                    slashArc.rotation.set(Math.PI/2, 0.1, Math.PI * smash * (1.8 + lv * 0.3));
+                    slashArc2.rotation.set(Math.PI/2, -0.1, Math.PI * smash * (1.5 + lv * 0.25));
+                    if (isGS && !player.attackHitDone && smash > 0.35) {
+                        // 真蓄力震地
+                        if (lv >= 3) createAOEShockwave(player.pos.clone(), 1.3, 0xff4400, 40);
+                        else if (lv >= 2) createAOEShockwave(player.pos.clone(), 0.9, 0xff6622, 28);
+                    }
                 }
 
                 slashArcMat.opacity = visualOpacity;
@@ -2144,7 +2931,8 @@
                 if (player.attackTimer <= 0) {
                     player.state = 'RECOVERY';
                     player.recoveryFrom = player.attackType === 'HEAVY' ? 'HEAVY' : 'LIGHT';
-                    player.recoveryTimer = player.attackType === 'HEAVY' ? 0.55 : (player.comboStep === 3 ? 0.48 : 0.34);
+                    const rMul = (selectedWeapon && selectedWeapon.recoveryMul) || 1;
+                    player.recoveryTimer = (player.attackType === 'HEAVY' ? 0.55 : (player.comboStep === 3 ? 0.48 : 0.34)) * rMul;
                     slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
                     playerGroup.position.y = 0;
                     targetFov = 60;
@@ -2262,7 +3050,13 @@
                 const wpn = selectedWeapon || WEAPONS.longsword;
                 if (player.state === 'SKILL_Q') { dmg = Math.round(200 * wpn.dmgMul); postureDmg = Math.round(36 * wpn.postureMul); hitType = 'SKILL'; } 
                 else if (player.state === 'SKILL_E') { dmg = Math.round(280 * wpn.dmgMul); postureDmg = Math.round(70 * wpn.postureMul); hitType = 'SKILL'; } 
-                else if (player.attackType === 'HEAVY') { dmg = Math.round(175 * wpn.heavyMul); postureDmg = Math.round(55 * wpn.postureMul); hitType = 'CRIT'; targetFov = 54; } 
+                else if (player.attackType === 'HEAVY') {
+                    const lv = (wpn.skillStyle === 'greatsword') ? Math.max(1, player.comboStep || 1) : 1;
+                    const chargeMul = (wpn.skillStyle === 'greatsword') ? (0.9 + lv * 0.7) : 1;
+                    dmg = Math.round(175 * wpn.heavyMul * chargeMul);
+                    postureDmg = Math.round(55 * wpn.postureMul * (0.9 + lv * 0.3));
+                    hitType = 'CRIT'; targetFov = 54;
+                } 
                 else { dmg = Math.round((48 + player.comboStep * 22) * wpn.dmgMul); postureDmg = Math.round((14 + player.comboStep * 9) * wpn.postureMul); }
 
                 boss.hp = Math.max(0, boss.hp - dmg);
@@ -2287,12 +3081,159 @@
         }
 
         /* --- 7. Boss 動作與 AI（更多技能 + 更高攻擊頻率） --- */
+                function enterBossPhase2() {
+            if (boss.phase >= 2 || boss.phaseAnnounced) return;
+            boss.phase = 2;
+            boss.phaseAnnounced = true;
+            boss.dmgMul = (boss.dmgMul || 1) * 1.15;
+            boss.speedMul = (boss.speedMul || 1) * 1.2;
+            boss.attackCdMul = Math.max(0.35, (boss.attackCdMul || 1) * 0.7);
+            createDamageNumber('二階段！', boss.pos.clone().add(new THREE.Vector3(0, 6, 0)), 'CRIT');
+            createAOEShockwave(boss.pos.clone(), 2.2, 0xff4400, 55);
+            createDirectionalSparks(boss.pos.clone().add(new THREE.Vector3(0, 4, 0)), 90, 0xff2200, new THREE.Vector3(0, 1, 0), 28);
+            triggerCameraShake(1.2);
+            if (bossModel.coreMesh && bossModel.coreMesh.material) {
+                bossModel.coreMesh.material.emissiveIntensity = 2.2;
+            }
+            // 短暫硬直後開始狂暴
+            boss.state = 'IDLE';
+            boss.timer = 1.1;
+            clearBossTelegraph();
+        }
+
+        function pickBossAction(dist) {
+            if (boss.hp < boss.maxHp * 0.5) enterBossPhase2();
+            const id = (boss.def && boss.def.id) || 1;
+            const ph = boss.phase || 1;
+            const r = Math.random();
+            if (ph === 2) {
+                // 二階段：大範圍 + 連斬 + 不可防
+                if (dist > 11) {
+                    if (r < 0.28) startBossAttack('VOID_RAIN', 1.4, 0.4);
+                    else if (r < 0.5) startBossAttack('HEAVEN_FALL', 1.35, 0.55);
+                    else if (r < 0.72) startBossAttack('GRAB_RUSH', 0.95, 0.35);
+                    else if (r < 0.88) startBossAttack('DARK_SHOCKWAVE', 1.0, 0.35);
+                    else startBossAttack('CHARGE_THRUST', 0.75, 0.3);
+                } else {
+                    if (r < 0.22) startBossAttack('FURY_BLADE', 1.35, 0.35);
+                    else if (r < 0.4) startBossAttack('FIVE_COMBO', 1.25, 0.32);
+                    else if (r < 0.55) startBossAttack('GROUND_CRUSH', 1.15, 0.5);
+                    else if (r < 0.7) startBossAttack('CROSS_SLASH', 1.0, 0.35);
+                    else if (r < 0.85) startBossAttack('SPIN_ATTACK', 1.05, 0.35);
+                    else startBossAttack('HEAVEN_FALL', 1.3, 0.5);
+                }
+                return;
+            }
+            // 一階段
+            if (id === 1) {
+                if (dist > 14) {
+                    if (r < 0.35) startBossAttack('DARK_ORB_BARRAGE', 1.4, 0.5);
+                    else if (r < 0.55) startBossAttack('CHARGE_THRUST', 0.95, 0.55);
+                    else if (r < 0.7) startBossAttack('GRAB_RUSH', 1.05, 0.45);
+                    else boss.state = 'PURSUE';
+                } else if (dist > 8) {
+                    if (r < 0.25) startBossAttack('DARK_SHOCKWAVE', 1.15, 0.48);
+                    else if (r < 0.4) startBossAttack('CROSS_SLASH', 1.05, 0.42);
+                    else if (r < 0.55) startBossAttack('GROUND_CRUSH', 1.2, 0.55);
+                    else if (r < 0.75) startBossAttack('CHARGE_THRUST', 0.95, 0.5);
+                    else boss.state = 'PURSUE';
+                } else {
+                    boss.state = 'CIRCLING';
+                    boss.timer = (0.4 + Math.random() * 0.7) * (boss.attackCdMul || 1);
+                    boss.circleDir = Math.random() < 0.5 ? 1 : -1;
+                }
+            } else if (id === 2) {
+                if (dist > 12) {
+                    if (r < 0.35) startBossAttack('CHARGE_THRUST', 0.8, 0.4);
+                    else if (r < 0.55) startBossAttack('GRAB_RUSH', 0.9, 0.38);
+                    else if (r < 0.75) startBossAttack('DARK_ORB_BARRAGE', 1.1, 0.4);
+                    else startBossAttack('DARK_SHOCKWAVE', 1.0, 0.4);
+                } else if (dist > 6) {
+                    if (r < 0.3) startBossAttack('THREE_COMBO', 0.75, 0.32);
+                    else if (r < 0.5) startBossAttack('CROSS_SLASH', 0.9, 0.35);
+                    else if (r < 0.7) startBossAttack('FIVE_COMBO', 1.1, 0.35);
+                    else if (r < 0.85) startBossAttack('SPIN_ATTACK', 0.85, 0.4);
+                    else boss.state = 'PURSUE';
+                } else {
+                    boss.state = 'CIRCLING';
+                    boss.timer = (0.2 + Math.random() * 0.4) * (boss.attackCdMul || 1);
+                    boss.circleDir = Math.random() < 0.5 ? 1 : -1;
+                }
+            } else {
+                if (dist > 10) {
+                    if (r < 0.3) startBossAttack('DARK_ORB_BARRAGE', 0.95, 0.32);
+                    else if (r < 0.5) startBossAttack('GRAB_RUSH', 0.85, 0.32);
+                    else if (r < 0.7) startBossAttack('GROUND_CRUSH', 1.1, 0.4);
+                    else if (r < 0.85) startBossAttack('CHARGE_THRUST', 0.7, 0.3);
+                    else startBossAttack('ABYSS_SPIKES', 1.0, 0.35);
+                } else {
+                    if (r < 0.22) startBossAttack('FIVE_COMBO', 1.05, 0.28);
+                    else if (r < 0.4) startBossAttack('THREE_COMBO', 0.65, 0.28);
+                    else if (r < 0.55) startBossAttack('CROSS_SLASH', 0.85, 0.3);
+                    else if (r < 0.7) startBossAttack('SPIN_ATTACK', 0.75, 0.32);
+                    else if (r < 0.85) startBossAttack('GROUND_CRUSH', 1.0, 0.4);
+                    else startBossAttack('SWIPE', 0.55, 0.28);
+                }
+            }
+        }
+        function pickBossMelee() {
+            if (boss.hp < boss.maxHp * 0.5) enterBossPhase2();
+            const id = (boss.def && boss.def.id) || 1;
+            const ph = boss.phase || 1;
+            const r = Math.random();
+            if (ph === 2) {
+                if (r < 0.14) startBossAttack('FURY_BLADE', 1.35, 0.32);
+                else if (r < 0.26) startBossAttack('SIX_COMBO', 1.4, 0.3);
+                else if (r < 0.38) startBossAttack('DOUBLE_CROSS', 1.25, 0.32);
+                else if (r < 0.5) startBossAttack('FIVE_COMBO', 1.2, 0.3);
+                else if (r < 0.6) startBossAttack('GROUND_CRUSH', 1.1, 0.45);
+                else if (r < 0.7) startBossAttack('LEAP_SLAM', 1.2, 0.4);
+                else if (r < 0.8) startBossAttack('HEAVEN_FALL', 1.25, 0.48);
+                else if (r < 0.9) startBossAttack('SIDE_SWEEP_COMBO', 1.1, 0.35);
+                else startBossAttack('SPIN_ATTACK', 1.0, 0.35);
+                return;
+            }
+            if (id === 1) {
+                if (r < 0.1) startBossAttack('THREE_COMBO', 0.85, 0.42);
+                else if (r < 0.2) startBossAttack('CROSS_SLASH', 1.0, 0.4);
+                else if (r < 0.3) startBossAttack('SIDE_SWEEP_COMBO', 1.05, 0.4);
+                else if (r < 0.4) startBossAttack('PIERCE_COMBO', 1.0, 0.38);
+                else if (r < 0.5) startBossAttack('SPIN_ATTACK', 0.95, 0.48);
+                else if (r < 0.58) startBossAttack('MACE_SMASH', 1.05, 0.5);
+                else if (r < 0.66) startBossAttack('GROUND_CRUSH', 1.15, 0.52);
+                else if (r < 0.74) startBossAttack('LEAP_SLAM', 1.1, 0.45);
+                else if (r < 0.84) startBossAttack('STOMP_AOE', 0.85, 0.45);
+                else if (r < 0.92) startBossAttack('SWIPE', 0.65, 0.38);
+                else startBossAttack('UPPERCUT', 0.9, 0.45);
+            } else if (id === 2) {
+                if (r < 0.12) startBossAttack('THREE_COMBO', 0.7, 0.3);
+                else if (r < 0.24) startBossAttack('FIVE_COMBO', 1.1, 0.32);
+                else if (r < 0.36) startBossAttack('DOUBLE_CROSS', 1.15, 0.34);
+                else if (r < 0.48) startBossAttack('CROSS_SLASH', 0.9, 0.32);
+                else if (r < 0.58) startBossAttack('SIDE_SWEEP_COMBO', 0.95, 0.32);
+                else if (r < 0.68) startBossAttack('PIERCE_COMBO', 0.9, 0.3);
+                else if (r < 0.78) startBossAttack('GROUND_CRUSH', 1.05, 0.42);
+                else if (r < 0.88) startBossAttack('SPIN_ATTACK', 0.8, 0.35);
+                else startBossAttack('MACE_SMASH', 0.9, 0.4);
+            } else {
+                if (r < 0.12) startBossAttack('SIX_COMBO', 1.2, 0.28);
+                else if (r < 0.24) startBossAttack('FIVE_COMBO', 1.0, 0.28);
+                else if (r < 0.36) startBossAttack('DOUBLE_CROSS', 1.1, 0.3);
+                else if (r < 0.48) startBossAttack('THREE_COMBO', 0.6, 0.25);
+                else if (r < 0.58) startBossAttack('SIDE_SWEEP_COMBO', 0.9, 0.28);
+                else if (r < 0.68) startBossAttack('LEAP_SLAM', 1.0, 0.35);
+                else if (r < 0.78) startBossAttack('GROUND_CRUSH', 1.0, 0.38);
+                else if (r < 0.88) startBossAttack('SPIN_ATTACK', 0.7, 0.28);
+                else startBossAttack('UPPERCUT', 0.7, 0.28);
+            }
+        }
         function startBossAttack(type, duration, windup) {
             boss.state = 'WINDUP'; 
             boss.attackType = type; 
             boss.attackDuration = duration; 
             boss.timer = windup;
             boss.hitDone = false;
+            boss.hitCount = 0;
             showBossTelegraph(type);
         }
 
@@ -2371,11 +3312,10 @@
                         } else if (player.isBlocking || player.hyperArmor) {
                             player.stamina = Math.max(0, player.stamina - (player.hyperArmor ? 25 : 40));
                             const gd = player.hyperArmor ? Math.ceil(p.damage * 0.45) : 8;
-                            player.hp = Math.max(0, player.hp - gd);
-                            createDamageNumber((player.hyperArmor ? '堅韌 -' : 'GUARD -') + gd, player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
+                            hurtPlayer(gd, player.hyperArmor ? '堅韌 -0' : 'GUARD -0');
                             p.life = 0;
                         } else {
-                            player.hp = Math.max(0, player.hp - p.damage);
+                            hurtPlayer(p.damage * (boss.dmgMul || 1));
                             createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 40, 0x6622ff);
                             createDamageNumber("-" + p.damage, player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
                             triggerCameraShake(0.55);
@@ -2396,10 +3336,9 @@
                                 /* countered */
                             } else if (player.isBlocking) {
                                 player.stamina = Math.max(0, player.stamina - 45);
-                                player.hp = Math.max(0, player.hp - 10);
-                                createDamageNumber("GUARD -10", player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
+                                hurtPlayer(10 * (boss.dmgMul || 1), 'GUARD -0');
                             } else {
-                                player.hp = Math.max(0, player.hp - p.damage);
+                                hurtPlayer(p.damage * (boss.dmgMul || 1));
                                 createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 50, 0x8800cc);
                                 createDamageNumber("-" + p.damage, player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
                                 triggerCameraShake(0.7);
@@ -2436,10 +3375,9 @@
                         /* parried */
                     } else if (player.isBlocking) {
                         player.stamina = Math.max(0, player.stamina - 35);
-                        player.hp = Math.max(0, player.hp - 6);
-                        createDamageNumber('GUARD -6', player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
+                        hurtPlayer(6 * (boss.dmgMul || 1), 'GUARD -0');
                     } else {
-                        player.hp = Math.max(0, player.hp - p.damage);
+                        hurtPlayer(p.damage * (boss.dmgMul || 1));
                         createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 45, 0x8844ff);
                         createDamageNumber('-' + p.damage, player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
                         triggerCameraShake(0.6);
@@ -2497,29 +3435,25 @@
 
             const dist = boss.pos.distanceTo(player.pos);
             const angleToPlayer = Math.atan2(player.pos.x - boss.pos.x, player.pos.z - boss.pos.z);
+            if (boss.hp < boss.maxHp * 0.5 && boss.phase < 2) enterBossPhase2();
 
             switch (boss.state) {
+                case 'STUNNED':
+                    boss.timer -= dt;
+                    bossModel.group.rotation.z = Math.sin(now * 12) * 0.08;
+                    bossModel.headGroup.rotation.x = 0.25;
+                    if (boss.timer <= 0) {
+                        boss.state = 'IDLE';
+                        boss.timer = 0.4;
+                        bossModel.group.rotation.z = 0;
+                        bossModel.headGroup.rotation.x = 0;
+                    }
+                    break;
                 case 'IDLE':
                     bossGroup.rotation.y = THREE.MathUtils.lerp(bossGroup.rotation.y, angleToPlayer, dt * 9);
                     boss.timer -= dt;
                     if (boss.timer <= 0) {
-                        // 攻擊頻率提高：idle 時間更短，攻擊機率更高
-                        if (dist > 14.0) { 
-                            const r = Math.random();
-                            if (r < 0.4) startBossAttack('DARK_ORB_BARRAGE', 1.4, 0.5);
-                            else if (r < 0.7) startBossAttack('CHARGE_THRUST', 0.95, 0.55);
-                            else boss.state = 'PURSUE'; 
-                        } else if (dist > 8.0) { 
-                            const r = Math.random();
-                            if (r < 0.35) startBossAttack('DARK_SHOCKWAVE', 1.15, 0.48);
-                            else if (r < 0.55) startBossAttack('ABYSS_SPIKES', 1.3, 0.6);
-                            else if (r < 0.75) startBossAttack('CHARGE_THRUST', 0.95, 0.5);
-                            else boss.state = 'PURSUE'; 
-                        } else { 
-                            boss.state = 'CIRCLING'; 
-                            boss.timer = 0.35 + Math.random() * 0.9; // 更短的盤旋時間
-                            boss.circleDir = Math.random() < 0.5 ? 1 : -1; 
-                        }
+                        pickBossAction(dist);
                     }
                     break;
 
@@ -2549,15 +3483,7 @@
                     }
 
                     if (boss.timer <= 0) {
-                        // 近戰技能池擴大，攻擊機率高
-                        const r = Math.random();
-                        if (r < 0.18) startBossAttack('THREE_COMBO', 0.85, 0.42);
-                        else if (r < 0.34) startBossAttack('SPIN_ATTACK', 0.95, 0.48);
-                        else if (r < 0.48) startBossAttack('MACE_SMASH', 1.05, 0.5);
-                        else if (r < 0.62) startBossAttack('STOMP_AOE', 0.85, 0.45);
-                        else if (r < 0.76) startBossAttack('SWIPE', 0.65, 0.38);
-                        else if (r < 0.88) startBossAttack('UPPERCUT', 0.9, 0.45);
-                        else startBossAttack('DARK_ORB_BARRAGE', 1.3, 0.55);
+                        pickBossMelee();
                     }
                     break;
 
@@ -2570,7 +3496,7 @@
                         bossPhys.moveVel.x += toP.x * 22 * dt;
                         bossPhys.moveVel.z += toP.z * 22 * dt;
                         const bsp = Math.hypot(bossPhys.moveVel.x, bossPhys.moveVel.z);
-                        const bmax = 5.5;
+                        const bmax = 5.5 * (boss.speedMul || 1);
                         if (bsp > bmax) { bossPhys.moveVel.x *= bmax / bsp; bossPhys.moveVel.z *= bmax / bsp; }
                         boss.pos.x += bossPhys.moveVel.x * dt;
                         boss.pos.z += bossPhys.moveVel.z * dt;
@@ -2585,14 +3511,23 @@
                     }
                     if (dist <= 7.0) { 
                         boss.state = 'CIRCLING'; 
-                        boss.timer = 0.3 + Math.random() * 0.6; 
+                        boss.timer = (0.3 + Math.random() * 0.6) * (boss.attackCdMul || 1); 
                         boss.circleDir = Math.random() < 0.5 ? 1 : -1; 
                     }
                     break;
 
                 case 'WINDUP':
                     boss.timer -= dt;
-                    // 每招獨立蓄力姿勢（可讀）
+                    // 蓄力時持續轉向玩家並微幅逼近
+                    bossGroup.rotation.y = THREE.MathUtils.lerp(bossGroup.rotation.y, angleToPlayer, dt * 8);
+                    {
+                        const toP = player.pos.clone().sub(boss.pos); toP.y = 0;
+                        if (toP.lengthSq() > 1) {
+                            toP.normalize();
+                            boss.pos.x += toP.x * 2.2 * dt * (boss.speedMul || 1);
+                            boss.pos.z += toP.z * 2.2 * dt * (boss.speedMul || 1);
+                        }
+                    }
                     {
                         const t = boss.attackType;
                         const k = 1 - Math.exp(-10 * dt);
@@ -2640,10 +3575,21 @@
                             bossModel.rightArmGroup.rotation.x += (-Math.PI * 0.95 - bossModel.rightArmGroup.rotation.x) * k;
                         }
                         if (boss.telegraph) {
-                            boss.telegraph.material.opacity = 0.35 + 0.35 * Math.sin(performance.now() * 0.012);
-                            if (t !== 'DARK_ORB_BARRAGE') {
-                                boss.telegraph.position.x = boss.pos.x;
-                                boss.telegraph.position.z = boss.pos.z;
+                            const pulse = 0.4 + 0.45 * Math.abs(Math.sin(performance.now() * 0.008));
+                            boss.telegraph.traverse((o) => {
+                                if (o.material && o.material.opacity != null) {
+                                    o.material.opacity = Math.min(0.95, pulse * (o.material.opacity > 0.7 ? 1.2 : 1));
+                                }
+                            });
+                            boss.telegraph.position.x = boss.pos.x;
+                            boss.telegraph.position.z = boss.pos.z;
+                            // 扇形隨面向旋轉
+                            if (boss.telegraph.children[0] && boss.telegraph.children[0].rotation) {
+                                const fan = boss.telegraph.children[0];
+                                if (fan.geometry && fan.geometry.type === 'RingGeometry' && fan.geometry.parameters && fan.geometry.parameters.thetaLength) {
+                                    fan.rotation.z = bossGroup.rotation.y - Math.PI * 0.15;
+                                    if (boss.telegraph.children[1]) boss.telegraph.children[1].rotation.z = fan.rotation.z;
+                                }
                             }
                         }
                     }
@@ -2659,6 +3605,10 @@
                     boss.timer -= dt;
                     const atkProg = 1 - (boss.timer / boss.attackDuration);
                     const attackCurve = easeOutCubic(atkProg);
+                    // 攻擊中持續鎖面向（避免側身揮空）
+                    if (boss.attackType !== 'SPIN_ATTACK') {
+                        bossGroup.rotation.y = THREE.MathUtils.lerp(bossGroup.rotation.y, angleToPlayer, dt * 10);
+                    }
 
                     // 每招打擊動作不同
                     {
@@ -2667,14 +3617,11 @@
                         if (t === 'SWIPE') {
                             bossModel.rightArmGroup.rotation.z += (-Math.PI * 1.1 - bossModel.rightArmGroup.rotation.z) * k;
                             bossModel.rightArmGroup.rotation.x += (-0.2 - bossModel.rightArmGroup.rotation.x) * k;
-                            bossGroup.rotation.y += 0.9 * dt;
+                            const step = new THREE.Vector3(Math.sin(bossGroup.rotation.y), 0, Math.cos(bossGroup.rotation.y));
+                            boss.pos.addScaledVector(step, 6.5 * dt);
                         } else if (t === 'MACE_SMASH') {
                             bossModel.rightArmGroup.rotation.x += (Math.PI * 0.85 - bossModel.rightArmGroup.rotation.x) * k;
                             bossModel.group.position.y = THREE.MathUtils.lerp(bossModel.group.position.y, atkProg < 0.5 ? 1.1 : -0.35, k);
-                        } else if (t === 'THREE_COMBO') {
-                            const phase = Math.floor(atkProg * 3);
-                            bossModel.rightArmGroup.rotation.x = -Math.PI * 0.4 + Math.sin((atkProg * 3 - phase) * Math.PI) * (phase % 2 === 0 ? -1.2 : 1.0);
-                            bossModel.leftArmGroup.rotation.x = phase === 1 ? -Math.PI * 0.7 : -0.2;
                         } else if (t === 'SPIN_ATTACK') {
                             bossGroup.rotation.y += Math.PI * 3.4 * dt;
                             bossModel.rightArmGroup.rotation.z = Math.sin(atkProg * Math.PI * 4) * 1.2;
@@ -2688,7 +3635,7 @@
                         } else if (t === 'CHARGE_THRUST') {
                             bossModel.rightArmGroup.rotation.x += (-Math.PI * 0.15 - bossModel.rightArmGroup.rotation.x) * k;
                             const dir = player.pos.clone().sub(boss.pos); dir.y = 0; dir.normalize();
-                            boss.pos.addScaledVector(dir, 24.0 * dt);
+                            boss.pos.addScaledVector(dir, 32.0 * dt * (boss.speedMul || 1));
                         } else if (t === 'DARK_SHOCKWAVE') {
                             bossModel.leftArmGroup.rotation.x += (0.3 - bossModel.leftArmGroup.rotation.x) * k;
                             bossModel.rightArmGroup.rotation.x += (0.3 - bossModel.rightArmGroup.rotation.x) * k;
@@ -2699,48 +3646,71 @@
                             bossModel.group.position.y = THREE.MathUtils.lerp(bossModel.group.position.y, -0.2, k);
                             bossModel.leftArmGroup.rotation.x += (-0.5 - bossModel.leftArmGroup.rotation.x) * k;
                             bossModel.rightArmGroup.rotation.x += (-0.5 - bossModel.rightArmGroup.rotation.x) * k;
+                        } else if (t === 'THREE_COMBO' || t === 'FIVE_COMBO' || t === 'FURY_BLADE' || t === 'SIX_COMBO' || t === 'SIDE_SWEEP_COMBO' || t === 'PIERCE_COMBO') {
+                            const n = t === 'THREE_COMBO' || t === 'SIDE_SWEEP_COMBO' || t === 'PIERCE_COMBO' ? 3 : (t === 'SIX_COMBO' ? 6 : 5);
+                            const phase = Math.floor(atkProg * n);
+                            const local = (atkProg * n - phase);
+                            const swing = Math.sin(local * Math.PI);
+                            bossModel.rightArmGroup.rotation.x = -Math.PI * 0.3 + swing * (phase % 2 === 0 ? -1.4 : 1.1);
+                            bossModel.leftArmGroup.rotation.x = phase % 2 === 1 ? -Math.PI * 0.8 : -0.2;
+                            bossModel.body && (bossModel.group.rotation.y += (phase % 2 === 0 ? 1 : -1) * 1.8 * dt);
+                            const step = new THREE.Vector3(Math.sin(bossGroup.rotation.y), 0, Math.cos(bossGroup.rotation.y));
+                            boss.pos.addScaledVector(step, 5 * dt);
+                        } else if (t === 'CROSS_SLASH' || t === 'DOUBLE_CROSS') {
+                            const seg = t === 'DOUBLE_CROSS' ? 4 : 2;
+                            const local = (atkProg * seg) % 1;
+                            if (Math.floor(atkProg * seg) % 2 === 0) {
+                                bossModel.rightArmGroup.rotation.z = -Math.PI * 1.3 * local;
+                                bossModel.rightArmGroup.rotation.x = -0.35;
+                            } else {
+                                bossModel.leftArmGroup.rotation.z = Math.PI * 1.3 * local;
+                                bossModel.leftArmGroup.rotation.x = -0.35;
+                            }
+                        } else if (t === 'LEAP_SLAM') {
+                            const up = atkProg < 0.4;
+                            bossModel.group.position.y = up ? atkProg / 0.4 * 2.5 : Math.max(-0.3, 2.5 - (atkProg - 0.4) / 0.3 * 3);
+                            bossModel.rightArmGroup.rotation.x = up ? -Math.PI * 1.2 * (atkProg / 0.4) : Math.PI * 0.8;
+                            bossModel.leftArmGroup.rotation.x = bossModel.rightArmGroup.rotation.x * 0.8;
+                        } else if (t === 'GROUND_CRUSH' || t === 'HEAVEN_FALL') {
+                            bossModel.rightArmGroup.rotation.x = atkProg < 0.45 ? -Math.PI * 1.3 * (atkProg / 0.45) : Math.PI * 0.9 * ((atkProg - 0.45) / 0.55);
+                            bossModel.leftArmGroup.rotation.x = bossModel.rightArmGroup.rotation.x;
+                            bossModel.group.position.y = atkProg < 0.45 ? 1.8 * (atkProg / 0.45) : Math.max(-0.4, 1.8 - 4 * (atkProg - 0.45));
+                        } else if (t === 'GRAB_RUSH') {
+                            bossModel.rightArmGroup.rotation.x = -0.4;
+                            bossModel.leftArmGroup.rotation.x = -0.4;
+                            const dir = player.pos.clone().sub(boss.pos); dir.y = 0;
+                            if (dir.lengthSq() > 0.01) dir.normalize();
+                            boss.pos.addScaledVector(dir, 28 * dt * (boss.speedMul || 1));
+                        } else if (t === 'VOID_RAIN') {
+                            bossModel.leftArmGroup.rotation.x = -Math.PI * 0.9;
+                            bossModel.rightArmGroup.rotation.x = -Math.PI * 0.7 + Math.sin(atkProg * 20) * 0.3;
+                            bossModel.coreMesh.material.emissiveIntensity = 1.5 + Math.sin(performance.now() * 0.04) * 0.8;
                         } else {
                             bossModel.rightArmGroup.rotation.x += (Math.PI * 0.95 - bossModel.rightArmGroup.rotation.x) * k;
                         }
                     }
 
-                    // 命中時機延後，對應動畫真正揮出的時刻
-                    let canHitNow = false;
-                    if (boss.attackType === 'CHARGE_THRUST' || boss.attackType === 'SPIN_ATTACK') {
-                        canHitNow = atkProg > 0.25;
-                    } else if (boss.attackType === 'DARK_ORB_BARRAGE') {
-                        // 分段發射
-                        if (!boss.hitDone && atkProg > 0.25) {
+                    // 連段／特殊招式命中
+                    const meta = ATTACK_META[boss.attackType] || { hits: [0.45], dmg: 42 };
+                    if (boss.attackType === 'DARK_ORB_BARRAGE' || boss.attackType === 'VOID_RAIN') {
+                        const thresholds = boss.attackType === 'VOID_RAIN' ? [0.2, 0.35, 0.5, 0.65, 0.8] : [0.25, 0.5, 0.75];
+                        while (boss.hitCount < thresholds.length && atkProg > thresholds[boss.hitCount]) {
                             spawnBossProjectile('DARK_ORB');
-                            boss.hitDone = true;
-                        }
-                        if (atkProg > 0.5 && boss.hitDone === true) {
-                            spawnBossProjectile('DARK_ORB');
-                            boss.hitDone = 2;
-                        }
-                        if (atkProg > 0.75 && boss.hitDone === 2) {
-                            spawnBossProjectile('DARK_ORB');
-                            boss.hitDone = 3;
+                            if (boss.attackType === 'VOID_RAIN') {
+                                setTimeout(() => spawnBossProjectile('DARK_ORB'), 80);
+                            }
+                            boss.hitCount++;
                         }
                     } else if (boss.attackType === 'ABYSS_SPIKES') {
-                        if (!boss.hitDone && atkProg > 0.35) {
+                        if (boss.hitCount === 0 && atkProg > 0.35) {
                             spawnBossProjectile('ABYSS_SPIKE');
-                            // 再額外兩根
-                            setTimeout(() => spawnBossProjectile('ABYSS_SPIKE'), 180);
-                            setTimeout(() => spawnBossProjectile('ABYSS_SPIKE'), 360);
-                            boss.hitDone = true;
+                            setTimeout(() => spawnBossProjectile('ABYSS_SPIKE'), 150);
+                            setTimeout(() => spawnBossProjectile('ABYSS_SPIKE'), 300);
+                            if (boss.phase >= 2) setTimeout(() => spawnBossProjectile('ABYSS_SPIKE'), 450);
+                            boss.hitCount = 1;
                         }
-                    } else {
-                        canHitNow = atkProg > 0.58; // 關鍵：延後命中，等動畫出來
-                    }
-                    
-                    if (canHitNow && !boss.hitDone) {
-                        if (boss.attackType === 'STOMP_AOE') { 
-                            createAOEShockwave(boss.pos, 9.5, 0xff2200, 48); 
-                            triggerCameraShake(0.7); 
-                            checkBossHitbox();
-                        } else if (boss.attackType === 'DARK_SHOCKWAVE') { 
-                            // 真正外擴的傷害環
+                    } else if (boss.attackType === 'DARK_SHOCKWAVE') {
+                        if (boss.hitCount === 0 && atkProg > 0.48) {
                             const ringGeo = new THREE.RingGeometry(0.4, 1.2, 48);
                             const ringMat = new THREE.MeshBasicMaterial({ color: 0x8844ff, side: THREE.DoubleSide, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
                             const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -2748,14 +3718,30 @@
                             ring.position.copy(boss.pos); ring.position.y = 0.1;
                             scene.add(ring);
                             boss.projectiles.push({
-                                mesh: ring, velocity: new THREE.Vector3(), life: 1.6, damage: 36,
-                                type: 'RING_WAVE', radius: 1.2, expandSpeed: 22, hitPlayers: new Set()
+                                mesh: ring, velocity: new THREE.Vector3(), life: 1.6, damage: 36 * (boss.dmgMul || 1),
+                                type: 'RING_WAVE', radius: 1.2, expandSpeed: 24, hitPlayers: new Set()
                             });
                             createAOEShockwave(boss.pos, 3.0, 0x8844ff, 30);
                             triggerCameraShake(0.9);
-                            boss.hitDone = true;
-                        } else {
+                            boss.hitCount = 1;
+                        }
+                    } else {
+                        // 多段近戰：每一段獨立判定（彈反只能擋其中一段）
+                        const hits = meta.hits || [0.45];
+                        while (boss.hitCount < hits.length && atkProg > hits[boss.hitCount]) {
+                            if (meta.aoe || boss.attackType === 'STOMP_AOE' || boss.attackType === 'GROUND_CRUSH' || boss.attackType === 'HEAVEN_FALL' || boss.attackType === 'LEAP_SLAM') {
+                                const rad = boss.attackType === 'HEAVEN_FALL' ? 14 : (boss.attackType === 'GROUND_CRUSH' || boss.attackType === 'LEAP_SLAM' ? 11 : 10);
+                                const col = boss.attackType === 'HEAVEN_FALL' ? 0xffee88 : 0xff2200;
+                                createAOEShockwave(boss.pos.clone(), rad / 8, col, 40 + rad);
+                                triggerCameraShake(0.75);
+                            }
+                            if (boss.attackType === 'GRAB_RUSH') {
+                                const dir = player.pos.clone().sub(boss.pos); dir.y = 0;
+                                if (dir.lengthSq() > 0.01) dir.normalize();
+                                boss.pos.addScaledVector(dir, 2.5);
+                            }
                             checkBossHitbox();
+                            boss.hitCount++;
                         }
                     }
 
@@ -2808,47 +3794,61 @@
 
         function checkBossHitbox() {
             const dist = boss.pos.distanceTo(player.pos);
-            let hitRange = 7.5; 
-            let isAOE = false;
+            const meta = ATTACK_META[boss.attackType] || { dmg: 42, unblockable: false };
+            let hitRange = 9.8;
+            let isAOE = !!meta.aoe;
 
-            if (boss.attackType === 'STOMP_AOE') { hitRange = 9.5; isAOE = true; }
-            if (boss.attackType === 'SPIN_ATTACK') { hitRange = 10.0; isAOE = true; }
-            if (boss.attackType === 'DARK_SHOCKWAVE') { hitRange = 13.5; isAOE = true; }
-            if (boss.attackType === 'UPPERCUT') { hitRange = 8.0; }
-            if (boss.attackType === 'CHARGE_THRUST') { hitRange = 8.5; }
-            if (boss.attackType === 'MACE_SMASH') { hitRange = 8.2; }
+            if (boss.attackType === 'STOMP_AOE' || boss.attackType === 'GROUND_CRUSH') { hitRange = 12.5; isAOE = true; }
+            if (boss.attackType === 'HEAVEN_FALL') { hitRange = 15.0; isAOE = true; }
+            if (boss.attackType === 'SPIN_ATTACK') { hitRange = 12.0; isAOE = true; }
+            if (boss.attackType === 'DARK_SHOCKWAVE') { hitRange = 15.0; isAOE = true; }
+            if (boss.attackType === 'UPPERCUT' || boss.attackType === 'MACE_SMASH') { hitRange = 10.5; }
+            if (boss.attackType === 'CHARGE_THRUST' || boss.attackType === 'GRAB_RUSH') { hitRange = 11.5; }
+            if (boss.attackType === 'SWIPE' || boss.attackType === 'CROSS_SLASH') { hitRange = 11.0; }
+            if (boss.attackType === 'THREE_COMBO' || boss.attackType === 'FIVE_COMBO' || boss.attackType === 'FURY_BLADE' || boss.attackType === 'SIX_COMBO' || boss.attackType === 'SIDE_SWEEP_COMBO' || boss.attackType === 'PIERCE_COMBO' || boss.attackType === 'DOUBLE_CROSS') { hitRange = 10.8; }
+            if (boss.attackType === 'LEAP_SLAM') { hitRange = 12.0; isAOE = true; }
+            hitRange *= 1 + 0.08 * ((boss.def && boss.def.id) || 1);
+            if (boss.phase >= 2) hitRange *= 1.06;
 
-            const dirToPlayer = player.pos.clone().sub(boss.pos).normalize();
-            const bossLookDir = new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0), bossGroup.rotation.y);
+            const dirToPlayer = player.pos.clone().sub(boss.pos); dirToPlayer.y = 0;
+            if (dirToPlayer.lengthSq() > 0.01) dirToPlayer.normalize();
+            const bossLookDir = new THREE.Vector3(Math.sin(bossGroup.rotation.y), 0, Math.cos(bossGroup.rotation.y));
             
-            if (dist < hitRange && (isAOE || bossLookDir.dot(dirToPlayer) > 0.25 || dist < 3.5)) {
-                boss.hitDone = true;
+            if (dist < hitRange && (isAOE || bossLookDir.dot(dirToPlayer) > -0.15 || dist < 5.5)) {
                 if (player.iframe) { 
                     createDamageNumber("DODGE!", player.pos.clone().add(new THREE.Vector3(0, 2, 0))); 
                     return; 
                 }
 
+                // 不可彈反／格擋招式（紅字警告）
+                if (meta.unblockable) {
+                    const dmg = Math.round((meta.dmg || 55) * (boss.dmgMul || 1));
+                    hurtPlayer(dmg, '不可防 -' + dmg);
+                    createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 70, 0xff0000, dirToPlayer, 20);
+                    createImpactFlash(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 0xff2200, 3.2);
+                    triggerCameraShake(1.0);
+                    hitstopTimer = 0.12;
+                    return;
+                }
+
+                // 彈反／防反：只能化解「當前這一段」
                 if ((player.counterWindow > 0 && tryCounterWindow()) || (player.parryWindow > 0 && tryParrySuccess())) {
                     return;
                 }
                 if (player.isBlocking) {
                     player.stamina = Math.max(0, player.stamina - 52); 
-                    player.hp = Math.max(0, player.hp - 11);
+                    hurtPlayer(Math.round(12 * (boss.dmgMul || 1)), 'GUARD -0');
                     createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 30, 0xffffff, dirToPlayer, 14);
-                    createDamageNumber("GUARD -11", player.pos.clone().add(new THREE.Vector3(0, 2.2, 0))); 
                     triggerCameraShake(0.38); 
                     return;
                 }
 
-                const dmg = (boss.attackType === 'MACE_SMASH' || boss.attackType === 'CHARGE_THRUST' || boss.attackType === 'UPPERCUT') ? 52 : 42;
-                player.hp = Math.max(0, player.hp - dmg);
+                const dmg = Math.round((meta.dmg || 42) * (boss.dmgMul || 1));
+                hurtPlayer(dmg);
                 createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 60, 0xff2200, dirToPlayer, 18);
                 createImpactFlash(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 0xff4400, 2.8);
-                createDamageNumber("-" + dmg, player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)));
-                triggerCameraShake(0.9); 
-                hitstopTimer = 0.15;
-
-                if (player.hp <= 0) triggerGameOver();
+                triggerCameraShake(0.85); 
+                hitstopTimer = 0.1;
             }
         }
 
@@ -2985,6 +3985,7 @@
             endTitle.className = "end-title died"; 
             endScreen.classList.add('show'); 
             document.exitPointerLock(); 
+            gameStarted = false;
         }
         function triggerVictory() { 
             boss.state = 'DEAD'; 
@@ -2995,6 +3996,12 @@
             endTitle.className = "end-title felled"; 
             endScreen.classList.add('show'); 
             document.exitPointerLock(); 
+            // 解鎖下一關
+            if (selectedBossId >= unlockedBoss && selectedBossId < 3) {
+                unlockedBoss = selectedBossId + 1;
+                try { localStorage.setItem('abyss_unlock', String(unlockedBoss)); } catch (e) {}
+            }
+            gameStarted = false;
         }
 
         const clock = new THREE.Clock();
