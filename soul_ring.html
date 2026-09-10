@@ -4169,50 +4169,109 @@
         }
 
         /* --- 8. 相機與環境粒子更新 --- */
+        // 鏡頭震動相位（平滑正弦，避免亂數抽搐）
+        let camShakePhase = 0;
+        let camShakeAmp = 0;
+
         function updateCamera(dt) {
-            // 速度感 FOV + 平滑回彈
-            const spdFov = 58 + walkIntensitySafe() * 3.5;
-            targetFov += (58 - targetFov) * (1 - Math.exp(-1.8 * dt));
-            const wantFov = player.state === 'ROLL' ? Math.max(targetFov, 66) : (player.lockOn ? targetFov : spdFov);
-            camera.fov = THREE.MathUtils.lerp(camera.fov, wantFov, 1 - Math.exp(-5 * dt));
+            // 速度感 FOV + 平滑回彈（限制突變幅度）
+            const spdFov = 58 + walkIntensitySafe() * 2.5;
+            targetFov += (58 - targetFov) * (1 - Math.exp(-2.2 * dt));
+            // 限制 targetFov 範圍，避免技能狂踢 FOV
+            targetFov = THREE.MathUtils.clamp(targetFov, 48, 68);
+            const wantFov = player.state === 'ROLL' ? Math.max(targetFov, 64) : (player.lockOn ? targetFov : spdFov);
+            camera.fov = THREE.MathUtils.lerp(camera.fov, wantFov, 1 - Math.exp(-4 * dt));
             camera.updateProjectionMatrix();
+
+            const bossDist = player.pos.distanceTo(boss.pos);
+            // Boss 貼臉時略為拉開鏡頭
+            const proximityBoost = bossDist < 8 ? THREE.MathUtils.smoothstep(8 - bossDist, 0, 6) * 3.5 : 0;
 
             let desiredPos, desiredLook;
             if (player.lockOn) {
-                const midPoint = player.pos.clone().add(boss.pos).multiplyScalar(0.5);
-                const dir = player.pos.clone().sub(boss.pos); dir.y = 0;
-                if (dir.lengthSq() < 0.01) dir.set(0, 0, 1); else dir.normalize();
-                desiredPos = player.pos.clone().add(dir.multiplyScalar(10.2)).add(new THREE.Vector3(0, 5.4, 0));
-                desiredLook = midPoint.add(new THREE.Vector3(0, 2.6, 0));
+                // 穩定的水平方向：避免距離過近時 normalize 抖動
+                let dir = player.pos.clone().sub(boss.pos); dir.y = 0;
+                const dirLen = Math.sqrt(dir.x * dir.x + dir.z * dir.z);
+                if (dirLen < 1.2) {
+                    // 過近：沿用上一幀相機方位，不要翻轉
+                    dir.set(Math.sin(camYaw), 0, Math.cos(camYaw));
+                } else {
+                    dir.multiplyScalar(1 / dirLen);
+                }
+                // 距離越近，鏡頭越遠、越高，避免塞進 Boss 模型
+                const backDist = 10.2 + proximityBoost + (bossDist < 6 ? 2.5 : 0);
+                const height = 5.0 + proximityBoost * 0.35;
+                desiredPos = player.pos.clone().add(dir.clone().multiplyScalar(backDist)).add(new THREE.Vector3(0, height, 0));
+                // 看點：偏向玩家，減少 Boss 衝刺時 midPoint 狂跳
+                const lookBias = bossDist < 7 ? 0.72 : 0.5;
+                desiredLook = player.pos.clone().multiplyScalar(lookBias).add(boss.pos.clone().multiplyScalar(1 - lookBias));
+                desiredLook.y = 2.2 + Math.min(2.0, bossDist * 0.08);
+
                 const lockUi = document.getElementById('lock-on-marker');
                 lockUi.style.display = 'block';
                 const screenPos = boss.pos.clone().add(new THREE.Vector3(0, 4.5, 0)).project(camera);
                 lockUi.style.left = `${(screenPos.x * 0.5 + 0.5) * window.innerWidth}px`;
                 lockUi.style.top = `${(-(screenPos.y * 0.5) + 0.5) * window.innerHeight}px`;
-                camYaw = Math.atan2(camera.position.x - player.pos.x, camera.position.z - player.pos.z);
+                camYaw = Math.atan2(desiredPos.x - player.pos.x, desiredPos.z - player.pos.z);
             } else {
                 document.getElementById('lock-on-marker').style.display = 'none';
-                const dist = camDistance + walkIntensitySafe() * 0.6;
+                const dist = camDistance + walkIntensitySafe() * 0.4 + proximityBoost;
                 const cx = player.pos.x + dist * Math.sin(camYaw) * Math.cos(camPitch);
-                const cy = player.pos.y + dist * Math.sin(camPitch) + 2.35;
+                const cy = player.pos.y + dist * Math.sin(camPitch) + 2.35 + proximityBoost * 0.2;
                 const cz = player.pos.z + dist * Math.cos(camYaw) * Math.cos(camPitch);
                 desiredPos = new THREE.Vector3(cx, cy, cz);
-                desiredLook = player.pos.clone().add(new THREE.Vector3(0, 1.75 + walkIntensitySafe() * 0.15, 0));
+                desiredLook = player.pos.clone().add(new THREE.Vector3(0, 1.75 + walkIntensitySafe() * 0.1, 0));
             }
-            // 指數平滑，低通跟鏡頭（電影感）
-            const follow = 1 - Math.exp(-(player.lockOn ? 5.5 : 7.5) * dt);
+
+            // Boss 衝刺時降低跟隨速度，減少抽搐
+            const bossCharging = boss.state === 'ATTACKING' && (
+                boss.attackType === 'CHARGE_THRUST' || boss.attackType === 'GRAB_RUSH' ||
+                boss.attackType === 'STORM_DASH' || boss.attackType === 'FLASH_STEP' ||
+                boss.attackType === 'AERIAL_DIVE'
+            );
+            const baseFollow = player.lockOn ? 4.2 : 6.5;
+            const followRate = bossCharging ? baseFollow * 0.55 : (bossDist < 6 ? baseFollow * 0.7 : baseFollow);
+            const follow = 1 - Math.exp(-followRate * dt);
             camSmooth.pos.lerp(desiredPos, follow);
-            camSmooth.look.lerp(desiredLook, follow * 1.15);
+            camSmooth.look.lerp(desiredLook, follow * 0.95);
+
+            // 防止鏡頭穿入 Boss
+            {
+                const toCam = camSmooth.pos.clone().sub(boss.pos);
+                const minR = 4.5;
+                const d = Math.sqrt(toCam.x * toCam.x + toCam.z * toCam.z);
+                if (d < minR && d > 0.01) {
+                    const push = (minR - d) / d;
+                    camSmooth.pos.x += toCam.x * push;
+                    camSmooth.pos.z += toCam.z * push;
+                    camSmooth.pos.y = Math.max(camSmooth.pos.y, boss.pos.y + 3.5);
+                }
+            }
+
             camera.position.copy(camSmooth.pos);
             camera.lookAt(camSmooth.look);
 
-            if (cameraShakeIntensity > 0) {
-                camera.position.x += (Math.random() - 0.5) * cameraShakeIntensity;
-                camera.position.y += (Math.random() - 0.5) * cameraShakeIntensity * 0.7;
-                cameraShakeIntensity = Math.max(0, cameraShakeIntensity - dt * 2.8);
+            // 平滑震動：正弦波疊加，而非每幀亂數
+            if (camShakeAmp > 0.001) {
+                camShakePhase += dt * 28;
+                const damp = Math.exp(-3.2 * dt);
+                camShakeAmp *= damp;
+                const sx = Math.sin(camShakePhase * 1.7) * camShakeAmp * 0.55;
+                const sy = Math.cos(camShakePhase * 2.1) * camShakeAmp * 0.4;
+                const sz = Math.sin(camShakePhase * 1.3 + 1.2) * camShakeAmp * 0.35;
+                camera.position.x += sx;
+                camera.position.y += sy;
+                camera.position.z += sz;
+            } else {
+                camShakeAmp = 0;
             }
+            cameraShakeIntensity = camShakeAmp; // 兼容舊讀取
         }
-        function triggerCameraShake(intensity) { cameraShakeIntensity = intensity; }
+        function triggerCameraShake(intensity) {
+            // 上限與疊加柔和，避免衝撞連擊把鏡頭打爆
+            const capped = Math.min(0.55, intensity * 0.65);
+            camShakeAmp = Math.min(0.7, Math.max(camShakeAmp, capped) + capped * 0.15);
+        }
         
         function updateFX(dt) {
             torchLights.forEach((light, i) => { light.intensity = 5.5 + Math.sin(performance.now() * 0.008 + i) * 1.1; });
