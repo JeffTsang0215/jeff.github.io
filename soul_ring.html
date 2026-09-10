@@ -114,7 +114,7 @@
             </div>
             <div class="flask-ui">
                 <div class="flask-icon"></div>
-                <div class="flask-count" id="flask-count">3</div>
+                <div class="flask-count" id="flask-count">5</div>
             </div>
             <div class="skill-cd-ui">
                 <div class="skill-slot ready" id="q-slot">
@@ -152,7 +152,7 @@
         </div>
         <div class="menu-panel" id="panel-weapon">
             <h1>選擇武器</h1>
-            <div class="sub">防禦力：大劍 &gt; 騎士 &gt; 太刀 &gt; 匕首</div>
+            <div class="sub">防禦力：大劍 &gt; 騎士 &gt; 太刀 &gt; 弓 &gt; 匕首</div>
             <div class="weapon-grid" id="weapon-grid">
                 <button type="button" class="weapon-card selected" data-weapon="longsword">
                     <div class="wname">騎士長劍</div>
@@ -169,6 +169,10 @@
                 <button type="button" class="weapon-card" data-weapon="greatsword">
                     <div class="wname">大劍</div>
                     <div class="wdesc">最高防禦・真蓄力<br>上撈斬擊暈</div>
+                </button>
+                <button type="button" class="weapon-card" data-weapon="bow">
+                    <div class="wname">狩弓</div>
+                    <div class="wdesc">遠程・低防禦<br>三連射／後空翻射／陷阱</div>
                 </button>
             </div>
             <div class="menu-nav">
@@ -261,79 +265,85 @@
         // 多層魔法陣
         const arenaGlow = new THREE.Mesh(
             new THREE.RingGeometry(19.2, 20.5, 64),
-            new THREE.MeshBasicMaterial({ color: 0x4488cc, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+            new THREE.MeshBasicMaterial({ color: 0x4488cc, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false })
         );
         arenaGlow.rotation.x = -Math.PI / 2; arenaGlow.position.y = 0.32; templeGroup.add(arenaGlow);
         const arenaGlow2 = new THREE.Mesh(
             new THREE.RingGeometry(14, 14.35, 64),
-            new THREE.MeshBasicMaterial({ color: 0x88aadd, transparent: true, opacity: 0.28, side: THREE.DoubleSide })
+            new THREE.MeshBasicMaterial({ color: 0x88aadd, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false })
         );
         arenaGlow2.rotation.x = -Math.PI / 2; arenaGlow2.position.y = 0.33; templeGroup.add(arenaGlow2);
         const arenaGlow3 = new THREE.Mesh(
             new THREE.RingGeometry(8.5, 8.7, 48),
-            new THREE.MeshBasicMaterial({ color: 0xaaccff, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
+            new THREE.MeshBasicMaterial({ color: 0xaaccff, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false })
         );
         arenaGlow3.rotation.x = -Math.PI / 2; arenaGlow3.position.y = 0.34; templeGroup.add(arenaGlow3);
 
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a1f2c, roughness: 0.8 });
-        const backWall = new THREE.Mesh(new THREE.BoxGeometry(140, 60, 3), wallMat);
-        backWall.position.set(0, 30, -80); backWall.receiveShadow = true; templeGroup.add(backWall);
-
-        // 遠古王座與祭壇
-        const throneBase = new THREE.Mesh(new THREE.BoxGeometry(12, 4, 8), wallMat);
-        throneBase.position.set(0, 2, -75); throneBase.castShadow = true; throneBase.receiveShadow = true; templeGroup.add(throneBase);
-        const throneBack = new THREE.Mesh(new THREE.BoxGeometry(10, 25, 2), wallMat);
-        throneBack.position.set(0, 14.5, -78); throneBack.castShadow = true; templeGroup.add(throneBack);
-
-        // —— 3A 感哥德神殿：對稱柱廊、拱門、階梯、無雜物 ——
+        // —— 實體封閉競技場：中央開闊、邊緣全實心建築（不擋戰鬥視野）——
         const stoneMat = new THREE.MeshStandardMaterial({ color: 0x2a3140, roughness: 0.78, metalness: 0.18 });
-        const stoneDark = new THREE.MeshStandardMaterial({ color: 0x1a1f2a, roughness: 0.85, metalness: 0.12 });
-        const stoneGold = new THREE.MeshStandardMaterial({ color: 0x3a3428, roughness: 0.55, metalness: 0.45 });
-        // 側牆
-        const sideWallL = new THREE.Mesh(new THREE.BoxGeometry(4, 42, 120), stoneDark);
-        sideWallL.position.set(-48, 21, -10); sideWallL.receiveShadow = true; sideWallL.castShadow = true; templeGroup.add(sideWallL);
-        const sideWallR = sideWallL.clone(); sideWallR.position.x = 48; templeGroup.add(sideWallR);
-        // 對稱柱廊
-        for (let z = -60; z <= 40; z += 18) {
-            [-32, 32].forEach((x) => {
-                const col = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.0, 28, 14), stoneMat);
-                col.position.set(x, 14, z); col.castShadow = true; col.receiveShadow = true; templeGroup.add(col);
-                const cap = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 4.2), stoneGold);
-                cap.position.set(x, 28.2, z); cap.castShadow = true; templeGroup.add(cap);
-                const base = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.5, 1.2, 14), stoneDark);
-                base.position.set(x, 0.6, z); base.receiveShadow = true; templeGroup.add(base);
+        const stoneDark = new THREE.MeshStandardMaterial({ color: 0x151922, roughness: 0.88, metalness: 0.15 });
+        const stoneGold = new THREE.MeshStandardMaterial({ color: 0x4a4030, roughness: 0.5, metalness: 0.5 });
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a1f2c, roughness: 0.82, metalness: 0.12 });
+
+        // 四面實心高牆（厚實體）
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(110, 48, 6), wallMat);
+        backWall.position.set(0, 24, -58); backWall.castShadow = true; backWall.receiveShadow = true; templeGroup.add(backWall);
+        const frontWall = new THREE.Mesh(new THREE.BoxGeometry(110, 36, 5), wallMat);
+        frontWall.position.set(0, 18, 58); frontWall.castShadow = true; frontWall.receiveShadow = true; templeGroup.add(frontWall);
+        const sideWallL = new THREE.Mesh(new THREE.BoxGeometry(6, 44, 120), stoneDark);
+        sideWallL.position.set(-52, 22, 0); sideWallL.castShadow = true; sideWallL.receiveShadow = true; templeGroup.add(sideWallL);
+        const sideWallR = sideWallL.clone(); sideWallR.position.x = 52; templeGroup.add(sideWallR);
+
+        // 牆面實體凸出結構（浮雕感，非空心）
+        for (let z = -40; z <= 40; z += 20) {
+            [-52, 52].forEach((x) => {
+                const buttress = new THREE.Mesh(new THREE.BoxGeometry(4, 36, 5), stoneMat);
+                buttress.position.set(x + (x > 0 ? -2 : 2), 18, z);
+                buttress.castShadow = true; templeGroup.add(buttress);
             });
-            // 橫樑
-            const beam = new THREE.Mesh(new THREE.BoxGeometry(68, 1.4, 2.2), stoneMat);
-            beam.position.set(0, 28.8, z); beam.castShadow = true; templeGroup.add(beam);
         }
-        // 王座前階梯
-        for (let i = 0; i < 5; i++) {
-            const step = new THREE.Mesh(new THREE.BoxGeometry(22 - i * 1.5, 0.55, 3.2), stoneGold);
-            step.position.set(0, 0.3 + i * 0.55, -62 - i * 2.2);
-            step.receiveShadow = true; step.castShadow = true; templeGroup.add(step);
+        // 遠角實體柱（靠牆，不擋中央）
+        for (const x of [-44, 44]) {
+            for (const z of [-48, -24, 0, 24, 48]) {
+                const col = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.2, 32, 12), stoneMat);
+                col.position.set(x, 16, z); col.castShadow = true; col.receiveShadow = true; templeGroup.add(col);
+                const cap = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.4, 4.5), stoneGold);
+                cap.position.set(x, 32.5, z); templeGroup.add(cap);
+            }
         }
-        // 拱門（王座方向）
-        const arch = new THREE.Mesh(new THREE.TorusGeometry(10, 1.2, 10, 24, Math.PI), stoneGold);
-        arch.position.set(0, 18, -72); arch.rotation.z = Math.PI; arch.castShadow = true; templeGroup.add(arch);
-        // 地面中軸線金紋
-        const centerLine = new THREE.Mesh(
-            new THREE.PlaneGeometry(3.5, 100),
-            new THREE.MeshStandardMaterial({ color: 0x4a4030, metalness: 0.55, roughness: 0.4 })
-        );
-        centerLine.rotation.x = -Math.PI / 2; centerLine.position.set(0, 0.14, -10); templeGroup.add(centerLine);
-        // 外圈石環
+        // 後牆王座（實心）
+        const throneBase = new THREE.Mesh(new THREE.BoxGeometry(16, 5, 10), stoneDark);
+        throneBase.position.set(0, 2.5, -52); throneBase.castShadow = true; templeGroup.add(throneBase);
+        const throneBack = new THREE.Mesh(new THREE.BoxGeometry(14, 22, 4), stoneMat);
+        throneBack.position.set(0, 14, -55); throneBack.castShadow = true; templeGroup.add(throneBack);
+        for (let i = 0; i < 4; i++) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(20 - i * 2, 0.6, 3.5), stoneGold);
+            step.position.set(0, 0.3 + i * 0.6, -44 - i * 2);
+            step.receiveShadow = true; templeGroup.add(step);
+        }
+        // 地面實體石環（不透明）
         const outerRing = new THREE.Mesh(
-            new THREE.RingGeometry(28, 29.5, 64),
-            new THREE.MeshStandardMaterial({ color: 0x3a4255, metalness: 0.3, roughness: 0.55, side: THREE.DoubleSide })
+            new THREE.TorusGeometry(30, 0.55, 8, 64),
+            new THREE.MeshStandardMaterial({ color: 0x3a4255, metalness: 0.35, roughness: 0.5 })
         );
-        outerRing.rotation.x = -Math.PI / 2; outerRing.position.y = 0.13; templeGroup.add(outerRing);
+        outerRing.rotation.x = -Math.PI / 2; outerRing.position.y = 0.4; templeGroup.add(outerRing);
+        const midRing = new THREE.Mesh(
+            new THREE.TorusGeometry(18, 0.35, 8, 48),
+            new THREE.MeshStandardMaterial({ color: 0x4a5040, metalness: 0.4, roughness: 0.45 })
+        );
+        midRing.rotation.x = -Math.PI / 2; midRing.position.y = 0.35; templeGroup.add(midRing);
+        // 中軸實體金紋
+        const centerLine = new THREE.Mesh(
+            new THREE.BoxGeometry(2.8, 0.12, 90),
+            new THREE.MeshStandardMaterial({ color: 0x5a4a30, metalness: 0.6, roughness: 0.35 })
+        );
+        centerLine.position.set(0, 0.2, -5); templeGroup.add(centerLine);
 
         const torchLights = [];
-        for (let z = -54; z <= 36; z += 18) {
-            [-32, 32].forEach((x) => {
+        for (let z = -48; z <= 48; z += 24) {
+            [-44, 44].forEach((x) => {
                 const torchLight = new THREE.PointLight(0xff7744, 4.8, 42);
-                torchLight.position.set(x + (x > 0 ? -2.5 : 2.5), 16, z);
+                torchLight.position.set(x + (x > 0 ? -3 : 3), 18, z);
                 scene.add(torchLight); torchLights.push(torchLight);
                 const flame = new THREE.Mesh(
                     new THREE.SphereGeometry(0.35, 8, 8),
@@ -845,18 +855,29 @@
                 hasShield: false, shiftMode: 'scoop', skillStyle: 'greatsword',
                 skillCd: 10, shiftCd: 10,
                 shiftHint: 'Shift 上撈斬（擊暈 2 秒・10秒CD）',
-                qHint: 'Q 劍氣震盪（10秒CD）', eHint: 'E 重踏突進（10秒CD）'
+                qHint: 'Q 向前突刺（10秒CD）', eHint: 'E 高跳砸地（10秒CD）'
+            },
+            bow: {
+                id: 'bow', name: '狩弓',
+                dmgMul: 2.15, heavyMul: 2.9, speedMul: 1.35, rangeMul: 2.4, postureMul: 1.2,
+                defense: 0.18, rollMul: 1.15, recoveryMul: 0.45,
+                hasShield: false, shiftMode: 'trap', skillStyle: 'bow',
+                skillCd: 8, shiftCd: 12,
+                shiftHint: 'Shift 地面陷阱（踩中暈2秒・12秒CD）',
+                qHint: 'Q 三連射（8秒CD）', eHint: 'E 後空翻射・落地加速5秒（8秒CD）'
             }
         };
         let selectedWeapon = WEAPONS.longsword;
         const playerShurikens = [];
         const playerClones = [];
+        const playerArrows = [];
+        const playerTraps = [];
 
         const PHYS = {
-            accel: 42,
-            maxSpeed: 7.4,
-            maxSpeedBlock: 3.6,
-            friction: 16,
+            accel: 52,
+            maxSpeed: 7.8,
+            maxSpeedBlock: 3.8,
+            friction: 12,
             rollImpulse: 32,
             rollFriction: 2.2,
             gravity: 28,
@@ -864,7 +885,7 @@
         };
 
         const player = {
-            hp: 100, maxHp: 100, stamina: 100, maxStamina: 100, flasks: 3,
+            hp: 100, maxHp: 100, stamina: 100, maxStamina: 100, flasks: 5,
             pos: playerGroup.position, state: 'IDLE',
             rollTimer: 0, rollMax: 0.78, iframe: false, attackTimer: 0, attackDuration: 0,
             comboStep: 0, lastAttackTime: 0, attackType: null, attackHitDone: false,
@@ -877,7 +898,8 @@
             shiftArtCd: 0, hyperArmor: false, shiftHoldTime: 0,
             counterWindow: 0, counterType: null,
             chargeLevel: 0, charging: false, chargeMax: 2.2,
-            iframeTimer: 0
+            iframeTimer: 0,
+            speedBoostTimer: 0
         };
         // Boss 流血
         const bossStatus = { bleedTime: 0, bleedDps: 0 };
@@ -888,19 +910,19 @@
             {
                 id: 1, name: '深淵君主', title: 'ABYSSAL SOVEREIGN',
                 desc: '騎士型・深淵刀術與暗魔法',
-                hp: 12000, posture: 350, speed: 1.0, dmgMul: 1.0, attackCd: 1.0,
+                hp: 12000, posture: 350, speed: 1.18, dmgMul: 1.0, attackCd: 1.0,
                 color: 0x1a1e2a, core: 0xff2200, archetype: 'abyss'
             },
             {
                 id: 2, name: '炎獄火龍', title: 'INFERNAL DRAKE',
                 desc: '龍型・火焰吐息與翼擊（更高攻頻）',
-                hp: 16500, posture: 400, speed: 1.35, dmgMul: 1.3, attackCd: 0.62,
+                hp: 16500, posture: 400, speed: 1.55, dmgMul: 1.3, attackCd: 0.62,
                 color: 0x3a1208, core: 0xff4400, archetype: 'fire'
             },
             {
                 id: 3, name: '雷霆古龍', title: 'STORM ANCIENT',
                 desc: '龍型・雷電連鎖與高速衝刺（最終試煉）',
-                hp: 23000, posture: 480, speed: 1.55, dmgMul: 1.5, attackCd: 0.42,
+                hp: 23000, posture: 480, speed: 1.75, dmgMul: 1.5, attackCd: 0.42,
                 color: 0x1a2a48, core: 0x6688ff, archetype: 'thunder'
             }
         ];
@@ -1066,6 +1088,9 @@
             } else if (wpn.id === 'dagger') {
                 knightMesh.group.scale.set(0.98, 1.0, 0.98); // 輕盈雙刀
                 body.scale.set(0.92, 1.0, 0.92);
+            } else if (wpn.id === 'bow') {
+                knightMesh.group.scale.set(1.0, 1.08, 1.0);
+                body.scale.set(0.94, 1.02, 0.94);
             } else {
                 knightMesh.group.scale.set(1.12, 1.1, 1.12); // 騎士
                 body.scale.set(1.0, 1.0, 1.0);
@@ -1143,6 +1168,29 @@
                 sg.scale.set(1, 1, 1);
                 knightMesh.blade = blade; knightMesh.fuller = null; knightMesh.guard = guard;
                 knightMesh.leftArm.position.set(-0.62, 2.05, 0.05);
+            } else if (wpn.id === 'bow') {
+                const wood = new THREE.MeshStandardMaterial({ color: 0x5a3a20, roughness: 0.75, metalness: 0.15 });
+                const stringM = new THREE.MeshBasicMaterial({ color: 0xe8e0d0 });
+                const bowG = new THREE.Group();
+                for (let i = 0; i < 7; i++) {
+                    const t = i / 6;
+                    const ang = (t - 0.5) * 1.15;
+                    const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.04 - Math.abs(t-0.5)*0.012, 0.045, 0.38, 6), wood);
+                    seg.position.set(Math.sin(ang) * 0.55, (t - 0.5) * 2.4, 0);
+                    seg.rotation.z = ang * 0.9;
+                    bowG.add(seg);
+                }
+                const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.35, 8), leather);
+                grip.rotation.z = Math.PI / 2; bowG.add(grip);
+                const str = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 2.35, 4), stringM);
+                str.position.set(-0.35, 0, 0); bowG.add(str);
+                const tipU = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.2, 5), gold); tipU.position.set(0.15, 1.35, 0); bowG.add(tipU);
+                const tipD = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.2, 5), gold); tipD.position.set(0.15, -1.35, 0); tipD.rotation.z = Math.PI; bowG.add(tipD);
+                sg.add(bowG);
+                sg.position.set(0.15, -0.2, 0.15);
+                sg.rotation.set(0, 0, -0.4);
+                knightMesh.blade = bowG; knightMesh.fuller = null; knightMesh.guard = null;
+                knightMesh.leftArm.position.set(-0.55, 2.05, 0.1);
             } else if (wpn.id === 'greatsword') {
                 // MH 大劍：厚重大刃、長柄、重鍔
                 const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 1.15, 10), leather);
@@ -1259,8 +1307,11 @@
 
         function resetPlayerCombat() {
             player.hp = player.maxHp; player.stamina = player.maxStamina;
-            player.flasks = 3; player.state = 'IDLE';
+            player.flasks = 5; player.state = 'IDLE';
             player.qCooldown = 0; player.eCooldown = 0; player.shiftArtCd = 0;
+            player.speedBoostTimer = 0;
+            playerArrows.forEach((a) => scene.remove(a.mesh)); playerArrows.length = 0;
+            playerTraps.forEach((t) => { scene.remove(t.ring); scene.remove(t.core); }); playerTraps.length = 0;
             player.counterWindow = 0; clearPlayerIframe();
             playerGroup.position.set(0, 0, 22);
             bossGroup.position.set(0, 0, -12);
@@ -1462,12 +1513,13 @@
         function spawnBossCastVFX(type) {
             const col = ATTACK_COLORS[type] || 0xffffff;
             const origin = boss.pos.clone().add(new THREE.Vector3(0, isDragonBoss() ? 5.5 : 4.0, 0));
-            createDirectionalSparks(origin, 85, col, new THREE.Vector3(0, 1, 0), 24);
-            createImpactFlash(origin, col, 5.5);
-            createAOEShockwave(boss.pos.clone(), 2.2, col, 42);
+            const p2 = (boss.phase || 1) >= 2;
+            createDirectionalSparks(origin, p2 ? 120 : 85, col, new THREE.Vector3(0, 1, 0), p2 ? 32 : 24);
+            createImpactFlash(origin, col, p2 ? 7.5 : 5.5);
+            createAOEShockwave(boss.pos.clone(), p2 ? 3.2 : 2.2, col, p2 ? 55 : 42);
             // 頭頂技能光環
             const halo = new THREE.Mesh(
-                new THREE.TorusGeometry(3.0, 0.28, 10, 32),
+                new THREE.TorusGeometry((boss.phase || 1) >= 2 ? 4.2 : 3.0, 0.32, 10, 32),
                 new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 1.0, blending: THREE.AdditiveBlending })
             );
             halo.position.copy(origin); halo.rotation.x = Math.PI / 2;
@@ -1737,6 +1789,78 @@
             return true;
         }
 
+        function spawnPlayerArrow(opts) {
+            opts = opts || {};
+            const lookDir = new THREE.Vector3(Math.sin(playerGroup.rotation.y), 0, Math.cos(playerGroup.rotation.y));
+            const toBoss = boss.pos.clone().sub(player.pos); toBoss.y = 0;
+            let dir = lookDir.clone();
+            if (toBoss.lengthSq() > 0.01 && !opts.noAim) {
+                toBoss.normalize();
+                dir.lerp(toBoss, opts.aim != null ? opts.aim : 0.55).normalize();
+            }
+            const start = player.pos.clone().add(new THREE.Vector3(0, 1.55, 0)).add(dir.clone().multiplyScalar(1.1));
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 6), new THREE.MeshStandardMaterial({ color: 0xc8a070, roughness: 0.7 }));
+            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 6), new THREE.MeshStandardMaterial({ color: 0xd0d8e8, metalness: 0.9, roughness: 0.25 }));
+            tip.position.y = 0.65;
+            const arrow = new THREE.Group(); arrow.add(shaft); arrow.add(tip);
+            arrow.position.copy(start);
+            arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+            scene.add(arrow);
+            playerArrows.push({
+                mesh: arrow, vel: dir.multiplyScalar(opts.speed || 42), life: opts.life || 2.8,
+                damage: opts.damage || 55, posture: opts.posture || 12, hit: false
+            });
+            createDirectionalSparks(start, 10, 0xffcc88, dir, 10);
+        }
+        function spawnTrap() {
+            const pos = player.pos.clone(); pos.y = 0.05;
+            const ring = new THREE.Mesh(new THREE.RingGeometry(0.6, 1.35, 24), new THREE.MeshBasicMaterial({ color: 0x88ffaa, transparent: true, opacity: 0.75, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+            ring.rotation.x = -Math.PI / 2; ring.position.copy(pos);
+            const core = new THREE.Mesh(new THREE.CircleGeometry(0.45, 16), new THREE.MeshBasicMaterial({ color: 0x44ff88, transparent: true, opacity: 0.45, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+            core.rotation.x = -Math.PI / 2; core.position.copy(pos); core.position.y = 0.06;
+            scene.add(ring); scene.add(core);
+            playerTraps.push({ ring, core, pos: pos.clone(), life: 18, armed: true, pulse: 0 });
+            createDamageNumber('陷阱', pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 'SKILL');
+        }
+        function updateArrowsAndTraps(dt) {
+            for (let i = playerArrows.length - 1; i >= 0; i--) {
+                const a = playerArrows[i];
+                a.life -= dt;
+                a.mesh.position.addScaledVector(a.vel, dt);
+                if (!a.hit && boss.state !== 'DEAD') {
+                    const dx = a.mesh.position.x - boss.pos.x, dz = a.mesh.position.z - boss.pos.z;
+                    const dy = a.mesh.position.y - (boss.pos.y + 3.2);
+                    if (Math.sqrt(dx*dx+dz*dz) < 2.9 && Math.abs(dy) < 4.5) {
+                        a.hit = true;
+                        applyBossDamage(a.damage, a.posture, a.damage >= 110 ? 'CRIT' : 'SKILL', a.mesh.position.clone());
+                        createDirectionalSparks(a.mesh.position.clone(), 24, 0xffdd88, null, 12);
+                        a.life = 0;
+                    }
+                }
+                if (a.life <= 0) { scene.remove(a.mesh); playerArrows.splice(i, 1); }
+            }
+            for (let i = playerTraps.length - 1; i >= 0; i--) {
+                const t = playerTraps[i];
+                t.life -= dt; t.pulse += dt * 4;
+                const op = 0.45 + Math.sin(t.pulse) * 0.25;
+                if (t.ring.material) t.ring.material.opacity = op + 0.2;
+                if (t.core.material) t.core.material.opacity = op;
+                if (t.armed && boss.state !== 'DEAD' && boss.state !== 'STUNNED' && boss.state !== 'STAGGERED') {
+                    const dx = boss.pos.x - t.pos.x, dz = boss.pos.z - t.pos.z;
+                    if (Math.sqrt(dx*dx+dz*dz) < 2.5) {
+                        t.armed = false; t.life = 0.3;
+                        boss.stunTimer = 2.0; boss.state = 'STUNNED'; boss.timer = 2.0;
+                        clearBossTelegraph();
+                        createAOEShockwave(t.pos.clone(), 1.8, 0x66ffaa, 36);
+                        createImpactFlash(t.pos.clone().add(new THREE.Vector3(0, 1, 0)), 0x88ffcc, 3.2);
+                        createDamageNumber('陷阱擊暈!', boss.pos.clone().add(new THREE.Vector3(0, 5, 0)), 'CRIT');
+                        triggerCameraShake(0.5);
+                    }
+                }
+                if (t.life <= 0) { scene.remove(t.ring); scene.remove(t.core); playerTraps.splice(i, 1); }
+            }
+        }
+
         function onShiftTap() {
             if (!gameStarted || player.state === 'DEAD') return;
             const mode = (selectedWeapon && selectedWeapon.shiftMode) || 'shield';
@@ -1798,6 +1922,18 @@
                 player.moveVel.copy(dir).multiplyScalar(38);
                 playerGroup.rotation.y = Math.atan2(dir.x, dir.z);
                 createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.2, 0)), 40, 0x88eeff, dir, 22);
+                return;
+            }
+            if (mode === 'trap') {
+                if (player.shiftArtCd > 0) return;
+                if (player.state === 'ROLL' || player.state.startsWith('SKILL') || player.state === 'DRINK' || player.state === 'ATTACK') return;
+                if (player.stamina < 18) return;
+                player.stamina -= 18;
+                player.shiftArtCd = player.shiftCdMax || 12.0;
+                spawnTrap();
+                player.state = 'RECOVERY';
+                player.recoveryFrom = 'SKILL';
+                player.recoveryTimer = 0.28;
                 return;
             }
         }
@@ -1890,6 +2026,8 @@
         }
 
         function applyBossDamage(dmg, posture, hitType, hitPos) {
+            // 破繭過場無敵
+            if (boss.state === 'PHASE_TRANS') return;
             boss.hp = Math.max(0, boss.hp - dmg);
             boss.posture = Math.min(boss.maxPosture, boss.posture + posture);
             const col = hitType === 'CRIT' ? 0xffee66 : (hitType === 'SKILL' ? 0x00e5ff : 0xffaa00);
@@ -1906,8 +2044,8 @@
                 triggerCameraShake(0.32);
                 targetFov = Math.min(targetFov, 52);
             } else {
-                hitstopTimer = Math.max(hitstopTimer, 0.045);
-                triggerCameraShake(0.16);
+                hitstopTimer = Math.max(hitstopTimer, 0.03);
+                triggerCameraShake(0.12);
             }
             if (boss.posture >= boss.maxPosture && boss.state !== 'STAGGERED') {
                 boss.state = 'STAGGERED'; boss.timer = 5.8; critMarker.visible = true;
@@ -1987,12 +2125,13 @@
             player.attackTimer = 1.0;
 
             setTimeout(() => {
-                player.hp = Math.min(player.maxHp, player.hp + 60);
-                createDamageNumber("+60 HEAL", player.pos.clone().add(new THREE.Vector3(0, 2.5, 0)), 'SKILL');
-                createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 35, 0x00ffff, null, 12);
-            }, 500);
+                const heal = Math.round(player.maxHp * 0.8);
+                player.hp = Math.min(player.maxHp, player.hp + heal);
+                createDamageNumber("+" + heal + " HEAL", player.pos.clone().add(new THREE.Vector3(0, 2.5, 0)), 'SKILL');
+                createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 40, 0x00ffff, null, 14);
+            }, 450);
 
-            setTimeout(() => { if (player.state === 'DRINK') player.state = 'IDLE'; }, 1000);
+            setTimeout(() => { if (player.state === 'DRINK') player.state = 'IDLE'; }, 850);
         }
 
         /* --- 6. 玩家動作與打擊判定（距離與流暢度大幅提升） --- */
@@ -2027,6 +2166,17 @@
                 player.attackTimer = player.attackDuration; player.attackHitDone = false; player.lastAttackTime = now;
 
                 const st = (selectedWeapon && selectedWeapon.skillStyle) || 'knight';
+                if (st === 'bow') {
+                    player.state = 'ATTACK';
+                    player.attackType = 'LIGHT';
+                    player.attackDuration = 0.36; // 拉弓→放箭，短後搖
+                    player.attackTimer = player.attackDuration;
+                    player.attackHitDone = false;
+                    player.lastAttackTime = now;
+                    player._bowShot = false;
+                    slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
+                    return;
+                }
                 if (st === 'katana') {
                     slashArcMat.color.setHex(0xb8d4ff); slashArc2Mat.color.setHex(0x88aaff);
                 } else if (st === 'dagger') {
@@ -2040,6 +2190,17 @@
                 // 大劍重擊改走蓄力系統
                 if ((selectedWeapon && selectedWeapon.skillStyle) === 'greatsword') {
                     beginGreatswordCharge();
+                    return;
+                }
+                if ((selectedWeapon && selectedWeapon.skillStyle) === 'bow') {
+                    if (player.stamina < 24) return; player.stamina -= 24;
+                    player.comboStep = 0;
+                    player.state = 'ATTACK'; player.attackType = 'HEAVY';
+                    player.attackDuration = 0.52; // 蓄力拉滿再放
+                    player.attackTimer = 0.52;
+                    player.attackHitDone = false; player.lastAttackTime = now;
+                    player._bowShot = false;
+                    slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
                     return;
                 }
                 if (player.stamina < 32) return; player.stamina -= 32;
@@ -2073,11 +2234,13 @@
                 player.stamina -= 20;
                 player.qCooldown = player.skillCdMax;
                 if (style === 'greatsword') {
-                    // 劍氣震盪：近身震波
+                    // 向前突刺
                     player.state = 'SKILL_Q';
-                    player.attackDuration = 1.0; player.attackTimer = 1.0; player.attackHitDone = false;
-                    slashArcMat.color.setHex(0xff7722); slashArc2Mat.color.setHex(0xff4400);
-                    slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.8;
+                    player.attackDuration = 0.75; player.attackTimer = 0.75; player.attackHitDone = false;
+                    player.moveVel.copy(lookDir.clone().multiplyScalar(28));
+                    slashArcMat.color.setHex(0xffaa44); slashArc2Mat.color.setHex(0xff6600);
+                    slashArcMat.opacity = 0.9; slashArc2Mat.opacity = 0.7;
+                    createDamageNumber('突刺', player.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'SKILL');
                     return;
                 }
                 if (style === 'katana') {
@@ -2099,6 +2262,14 @@
                     slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.7;
                     return;
                 }
+                if (style === 'bow') {
+                    player.state = 'SKILL_Q';
+                    player.attackDuration = 0.7; player.attackTimer = 0.7; player.attackHitDone = false;
+                    player._bowVolley = 0;
+                    slashArcMat.color.setHex(0xffcc66); slashArcMat.opacity = 0.3;
+                    createDamageNumber('三連射', player.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'SKILL');
+                    return;
+                }
                 // knight 劍氣
                 player.state = 'SKILL_Q'; player.attackDuration = 0.85; player.attackTimer = 0.85; player.attackHitDone = false;
                 player.velocity.set(0, 0, 0);
@@ -2110,12 +2281,17 @@
                 player.stamina -= 28;
                 player.eCooldown = player.skillCdMax;
                 if (style === 'greatsword') {
-                    // 重踏突進
+                    // 高跳砸地 AOE
                     player.state = 'SKILL_E';
-                    player.attackDuration = 1.15; player.attackTimer = 1.15; player.attackHitDone = false;
-                    player.velocity.copy(lookDir.clone().multiplyScalar(18));
-                    slashArcMat.color.setHex(0xffaa44); slashArc2Mat.color.setHex(0xff6600);
-                    slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.8;
+                    player.attackDuration = 1.25; player.attackTimer = 1.25; player.attackHitDone = false;
+                    player.vertVel = 22;
+                    player.grounded = false;
+                    player.moveVel.copy(lookDir.clone().multiplyScalar(10));
+                    setPlayerIframe(0.95);
+                    slashArcMat.color.setHex(0xffcc44); slashArc2Mat.color.setHex(0xff8800);
+                    slashArcMat.opacity = 1; slashArc2Mat.opacity = 0.85;
+                    targetFov = 50;
+                    createDamageNumber('跳斬', player.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'SKILL');
                     return;
                 }
                 if (style === 'katana') {
@@ -2146,6 +2322,20 @@
                     player.attackDuration = 1.15; player.attackTimer = 1.15; player.attackHitDone = false;
                     spawnClonesAndShurikens();
                     slashArcMat.color.setHex(0xcc88ff); slashArcMat.opacity = 0.6;
+                    return;
+                }
+                if (style === 'bow') {
+                    player.state = 'SKILL_E';
+                    player.attackDuration = 0.85; player.attackTimer = 0.85; player.attackHitDone = false;
+                    player.moveVel.copy(lookDir.clone().multiplyScalar(-48));
+                    player.vertVel = 14;
+                    player.grounded = false;
+                    setPlayerIframe(0.9);
+                    player._bowBackshot = false;
+                    player._bowFlipBoostPending = true;
+                    slashArcMat.opacity = 0;
+                    createDamageNumber('後空翻射', player.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'SKILL');
+                    createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1, 0)), 25, 0xffcc66, lookDir.clone().multiplyScalar(-1), 14);
                     return;
                 }
                 player.state = 'SKILL_E'; player.attackDuration = 1.05; player.attackTimer = 1.05; player.attackHitDone = false;
@@ -2235,6 +2425,9 @@
             if (player.eCooldown > 0) player.eCooldown = Math.max(0, player.eCooldown - dt);
             if (player.parryTimer > 0) player.parryTimer = Math.max(0, player.parryTimer - dt);
             if (player.parryWindow > 0) player.parryWindow = Math.max(0, player.parryWindow - dt);
+            if (player.speedBoostTimer > 0) {
+                player.speedBoostTimer = Math.max(0, player.speedBoostTimer - dt);
+            }
             // 無敵計時（防止永久 iframe）
             if (player.iframeTimer > 0) {
                 player.iframeTimer -= dt;
@@ -2334,7 +2527,7 @@
                 }
                 const rollM = (selectedWeapon && selectedWeapon.rollMul) || 1;
                 player.moveVel.set(dir.x * PHYS.rollImpulse * rollM, 0, dir.z * PHYS.rollImpulse * rollM);
-                player.rollMax = 0.72 / Math.max(0.85, Math.min(1.4, rollM));
+                player.rollMax = 0.58 / Math.max(0.85, Math.min(1.4, rollM));
                 player.rollTimer = player.rollMax;
                 player.velocity.copy(player.moveVel);
                 playerGroup.rotation.y = Math.atan2(dir.x, dir.z);
@@ -2370,10 +2563,10 @@
                 playerGroup.position.x += player.moveVel.x * dt;
                 playerGroup.position.z += player.moveVel.z * dt;
                 // 輕微弧線高度（像魂系翻滾貼地滾）
-                const hop = Math.sin(Math.min(1, p) * Math.PI) * 0.55;
+                const hop = Math.sin(Math.min(1, p) * Math.PI) * 0.42;
                 playerGroup.position.y = hop;
-                // 流暢前滾：用 smoothstep 轉完整一圈，中段加速
-                const spinT = p * p * (3 - 2 * p);
+                // 更柔的 smoothstep 滾轉
+                const spinT = p * p * p * (p * (p * 6 - 15) + 10);
                 const spin = spinT * Math.PI * 2;
                 const tuck = Math.sin(Math.min(1, p * 1.05) * Math.PI);
                 // 以角色根節點滾轉，比只轉身體更自然
@@ -2399,7 +2592,7 @@
                 if (player.rollTimer <= 0) {
                     player.state = 'RECOVERY';
                     player.recoveryFrom = 'ROLL';
-                    player.recoveryTimer = 0.26;
+                    player.recoveryTimer = 0.16;
                     clearPlayerIframe();
                     player.grounded = true;
                     playerGroup.position.y = 0;
@@ -2597,16 +2790,44 @@
                 const style = (selectedWeapon && selectedWeapon.skillStyle) || 'knight';
                 
                 if (player.state === 'SKILL_Q') {
-                    if (style === 'greatsword') {
-                        knightMesh.rightArm.rotation.x = -Math.PI * 1.1 * curve;
-                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.6 * curve;
-                        knightMesh.body.rotation.x = -0.25 * curve;
-                        if (!player.attackHitDone && progress > 0.45) {
+                    if (style === 'bow') {
+                        const thresholds = [0.12, 0.38, 0.64];
+                        player._bowVolley = player._bowVolley || 0;
+                        while (player._bowVolley < thresholds.length && progress >= thresholds[player._bowVolley]) {
+                            spawnPlayerArrow({ damage: 170, posture: 24, speed: 52, aim: 0.72 });
+                            player._bowVolley++;
+                        }
+                        // 連續拉弓姿
+                        const pulse = Math.sin(progress * Math.PI * 3);
+                        knightMesh.leftArm.rotation.x = -1.1;
+                        knightMesh.leftArm.rotation.y = 0.3;
+                        knightMesh.rightArm.rotation.y = -0.7 - pulse * 0.35;
+                        knightMesh.rightArm.rotation.z = 0.5;
+                        knightMesh.swordGroup.rotation.y = 0.8;
+                        knightMesh.swordGroup.rotation.z = -0.85;
+                        knightMesh.body.rotation.y = 0.4;
+                    } else if (style === 'greatsword') {
+                        // Q 突刺
+                        playerGroup.position.x += player.moveVel.x * dt;
+                        playerGroup.position.z += player.moveVel.z * dt;
+                        player.moveVel.multiplyScalar(Math.exp(-4.5 * dt));
+                        const thrust = progress < 0.35 ? progress / 0.35 : Math.max(0, 1 - (progress - 0.35) / 0.65);
+                        knightMesh.rightArm.rotation.x = -Math.PI * 0.35 - Math.PI * 0.55 * thrust;
+                        knightMesh.swordGroup.rotation.x = -Math.PI * 0.9 * thrust;
+                        knightMesh.swordGroup.rotation.z = 0;
+                        knightMesh.body.rotation.x = 0.15 * thrust;
+                        if (knightMesh.legR) {
+                            knightMesh.legR.rotation.x = 0.5 * thrust;
+                            knightMesh.legL.rotation.x = -0.25 * thrust;
+                        }
+                        slashArcMat.opacity = 0.45 * thrust;
+                        if (!player.attackHitDone && progress > 0.32) {
                             player.attackHitDone = true;
                             const dist = player.pos.distanceTo(boss.pos);
-                            if (dist < 10) {
-                                applyBossDamage(420, 100, 'SKILL', boss.pos.clone().add(new THREE.Vector3(0, 3.2, 0)));
-                                createAOEShockwave(player.pos.clone(), 1.5, 0xff6622, 42);
+                            if (dist < 11) {
+                                applyBossDamage(380, 85, 'SKILL', boss.pos.clone().add(new THREE.Vector3(0, 3.2, 0)));
+                                createDirectionalSparks(boss.pos.clone().add(new THREE.Vector3(0, 3, 0)), 40, 0xffaa44, null, 16);
+                                triggerCameraShake(0.35);
                             }
                         }
                     } else if (style === 'dagger') {
@@ -2639,14 +2860,92 @@
                         }
                     }
                 } else if (player.state === 'SKILL_E') {
-                    if (style === 'greatsword') {
-                        if (progress > 0.2 && progress < 0.55) playerGroup.position.addScaledVector(player.velocity, dt * 1.8);
-                        knightMesh.rightArm.rotation.x = -Math.PI * 1.0 * curve;
-                        knightMesh.swordGroup.rotation.z = -Math.PI * 1.5 * curve;
-                        if (!player.attackHitDone && progress > 0.5) {
-                            player.attackHitDone = true;
-                            checkPlayerHitbox();
-                            createAOEShockwave(player.pos.clone(), 1.0, 0xffaa44, 30);
+                    if (style === 'bow') {
+                        playerGroup.position.x += player.moveVel.x * dt;
+                        playerGroup.position.z += player.moveVel.z * dt;
+                        player.moveVel.multiplyScalar(Math.exp(-2.8 * dt));
+                        player.vertVel -= 32 * dt;
+                        playerGroup.position.y += player.vertVel * dt;
+                        if (playerGroup.position.y < 0) {
+                            playerGroup.position.y = 0;
+                            player.vertVel = 0;
+                            player.grounded = true;
+                        }
+                        const flip = progress * Math.PI * 2;
+                        if (knightMesh.group) knightMesh.group.rotation.x = -flip;
+                        knightMesh.body.rotation.x = 0;
+                        const draw = Math.min(1, progress / 0.45);
+                        knightMesh.leftArm.rotation.x = -1.15 * draw;
+                        knightMesh.leftArm.rotation.y = 0.3 * draw;
+                        knightMesh.rightArm.rotation.y = -0.95 * draw;
+                        knightMesh.rightArm.rotation.z = 0.6 * draw;
+                        knightMesh.swordGroup.rotation.y = 0.9 * draw;
+                        knightMesh.swordGroup.rotation.z = -0.85;
+                        if (knightMesh.legL) {
+                            knightMesh.legL.rotation.x = -0.9 * Math.sin(progress * Math.PI);
+                            knightMesh.legR.rotation.x = 0.7 * Math.sin(progress * Math.PI);
+                        }
+                        if (!player._bowBackshot && progress > 0.38) {
+                            player._bowBackshot = true;
+                            spawnPlayerArrow({ damage: 310, posture: 48, speed: 58, aim: 0.92 });
+                            createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, playerGroup.position.y + 1.2, 0)), 36, 0xffaa44, null, 16);
+                        }
+                        if (progress > 0.85 && player._bowFlipBoostPending) {
+                            player._bowFlipBoostPending = false;
+                            player.speedBoostTimer = 5.0;
+                            playerGroup.position.y = 0;
+                            if (knightMesh.group) knightMesh.group.rotation.x = 0;
+                            createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 0.5, 0)), 30, 0x88ffcc, new THREE.Vector3(0, 1, 0), 12);
+                            createDamageNumber('加速!', player.pos.clone().add(new THREE.Vector3(0, 2.2, 0)), 'SKILL');
+                        }
+                        if (player.attackTimer <= 0.01) {
+                            if (knightMesh.group) knightMesh.group.rotation.x = 0;
+                            playerGroup.position.y = 0;
+                            if (player._bowFlipBoostPending) {
+                                player._bowFlipBoostPending = false;
+                                player.speedBoostTimer = 5.0;
+                            }
+                        }
+                    } else if (style === 'greatsword') {
+                        if (progress < 0.4) {
+                            playerGroup.position.y = Math.max(playerGroup.position.y, 0) + player.vertVel * dt;
+                            player.vertVel -= 14 * dt;
+                            if (player.vertVel < 0 && progress < 0.28) player.vertVel = Math.max(player.vertVel, -2);
+                            playerGroup.position.x += player.moveVel.x * dt * 0.5;
+                            playerGroup.position.z += player.moveVel.z * dt * 0.5;
+                            const up = progress / 0.4;
+                            knightMesh.rightArm.rotation.x = -Math.PI * 1.35 * up;
+                            knightMesh.swordGroup.rotation.z = -Math.PI * 0.4 * up;
+                            knightMesh.body.rotation.x = -0.35 * up;
+                            if (knightMesh.legL) {
+                                knightMesh.legL.rotation.x = -0.5 * up;
+                                knightMesh.legR.rotation.x = 0.4 * up;
+                            }
+                            if (Math.random() < 0.35) createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, playerGroup.position.y + 1, 0)), 4, 0xffcc66, new THREE.Vector3(0, 1, 0), 8);
+                        } else {
+                            const dive = (progress - 0.4) / 0.6;
+                            player.vertVel = -40;
+                            playerGroup.position.y = Math.max(0, playerGroup.position.y + player.vertVel * dt);
+                            playerGroup.position.x += player.moveVel.x * dt * 0.9;
+                            playerGroup.position.z += player.moveVel.z * dt * 0.9;
+                            knightMesh.rightArm.rotation.x = -Math.PI * 1.35 + Math.PI * 2.0 * dive;
+                            knightMesh.swordGroup.rotation.z = -Math.PI * 0.4 - Math.PI * 1.5 * dive;
+                            knightMesh.body.rotation.x = -0.35 + 1.0 * dive;
+                            slashArc.rotation.set(0.3, Math.PI/2, Math.PI * dive);
+                            slashArcMat.opacity = 1 - dive * 0.3;
+                            if (!player.attackHitDone && (dive > 0.45 || playerGroup.position.y <= 0.2)) {
+                                player.attackHitDone = true;
+                                playerGroup.position.y = 0;
+                                player.grounded = true;
+                                clearPlayerIframe();
+                                const dist = player.pos.distanceTo(boss.pos);
+                                if (dist < 14) applyBossDamage(480, 110, 'CRIT', boss.pos.clone().add(new THREE.Vector3(0, 3.5, 0)));
+                                createAOEShockwave(player.pos.clone(), 2.4, 0xffaa22, 55);
+                                createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1, 0)), 55, 0xffcc44, new THREE.Vector3(0, 1, 0), 20);
+                                triggerCameraShake(0.85);
+                                hitstopTimer = Math.max(hitstopTimer, 0.12);
+                                targetFov = 58;
+                            }
                         }
                     } else if (style === 'katana') {
                         // 登龍：高躍翻轉 → 空中蓄力展示 → 龍氣俯衝
@@ -2746,7 +3045,7 @@
 
             if (player.state === 'RECOVERY') {
                 player.recoveryTimer -= dt;
-                const blend = player.recoveryFrom === 'ROLL' ? 9 : 11;
+                const blend = player.recoveryFrom === 'ROLL' ? 14 : 13;
                 const k = 1 - Math.exp(-blend * dt);
                 if (knightMesh.group) {
                     knightMesh.group.rotation.x += (0 - knightMesh.group.rotation.x) * k;
@@ -2794,6 +3093,92 @@
             if (player.state === 'ATTACK') {
                 player.attackTimer -= dt;
                 const progress = 1 - (player.attackTimer / player.attackDuration);
+
+                // ===== 弓：專用拉弓／放箭模組（非近戰揮砍）=====
+                if ((selectedWeapon && selectedWeapon.skillStyle) === 'bow') {
+                    const isHeavy = player.attackType === 'HEAVY';
+                    // 時間軸：拉弦(0~releaseAt) → 放箭瞬間 → 收弓
+                    const releaseAt = isHeavy ? 0.58 : 0.48;
+                    const draw = Math.min(1, progress / releaseAt);
+                    const release = progress < releaseAt ? 0 : Math.min(1, (progress - releaseAt) / (1 - releaseAt));
+                    const drawEase = draw * draw * (3 - 2 * draw); // smoothstep
+
+                    // 面向 Boss
+                    const toB = boss.pos.clone().sub(player.pos); toB.y = 0;
+                    if (toB.lengthSq() > 0.01) {
+                        const ang = Math.atan2(toB.x, toB.z);
+                        playerGroup.rotation.y = THREE.MathUtils.lerp(playerGroup.rotation.y, ang, 1 - Math.exp(-10 * dt));
+                    }
+
+                    // 姿態：側身、左臂前持弓、右臂後拉弦
+                    knightMesh.body.rotation.y = 0.55 * drawEase * (1 - release * 0.7);
+                    knightMesh.body.rotation.x = -0.08 * drawEase;
+                    knightMesh.body.rotation.z = -0.06 * drawEase;
+                    // 左臂前伸持弓
+                    knightMesh.leftArm.rotation.x = -1.15 * drawEase - 0.2;
+                    knightMesh.leftArm.rotation.y = 0.35 * drawEase;
+                    knightMesh.leftArm.rotation.z = -0.25 * drawEase;
+                    // 右臂後拉
+                    knightMesh.rightArm.rotation.x = -0.35 * drawEase;
+                    knightMesh.rightArm.rotation.y = -0.85 * drawEase;
+                    knightMesh.rightArm.rotation.z = 0.55 * drawEase;
+                    // 弓本體朝前上舉
+                    knightMesh.swordGroup.rotation.x = -0.4 * drawEase;
+                    knightMesh.swordGroup.rotation.y = 0.9 * drawEase;
+                    knightMesh.swordGroup.rotation.z = -0.9 + 0.35 * drawEase;
+                    // 重心與腿
+                    if (knightMesh.legL) {
+                        knightMesh.legL.rotation.x = -0.2 * drawEase;
+                        knightMesh.legR.rotation.x = 0.25 * drawEase;
+                    }
+                    if (knightMesh.headGroup) {
+                        knightMesh.headGroup.rotation.y = -0.25 * drawEase;
+                        knightMesh.headGroup.rotation.x = -0.05;
+                    }
+                    // 拉弦中微抖
+                    if (drawEase > 0.3 && release < 0.05 && Math.random() < 0.3) {
+                        createDirectionalSparks(
+                            player.pos.clone().add(new THREE.Vector3(Math.sin(playerGroup.rotation.y)*0.8, 1.6, Math.cos(playerGroup.rotation.y)*0.8)),
+                            2, 0xffe0a0, null, 4
+                        );
+                    }
+                    // 放箭
+                    if (!player.attackHitDone && progress >= releaseAt) {
+                        player.attackHitDone = true;
+                        if (isHeavy) {
+                            spawnPlayerArrow({ damage: 275, posture: 42, speed: 56, aim: 0.88 });
+                            createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 35, 0xffaa44, null, 16);
+                            triggerCameraShake(0.22);
+                        } else {
+                            spawnPlayerArrow({ damage: 115, posture: 18, speed: 50, aim: 0.7 });
+                            createDirectionalSparks(player.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 18, 0xffcc88, null, 12);
+                        }
+                        // 放弦回彈
+                        knightMesh.rightArm.rotation.y = 0.1;
+                        knightMesh.rightArm.rotation.z = 0.1;
+                    }
+                    // 收弓回正
+                    if (release > 0.2) {
+                        const k = 1 - Math.exp(-12 * dt);
+                        knightMesh.rightArm.rotation.x += (0 - knightMesh.rightArm.rotation.x) * k;
+                        knightMesh.rightArm.rotation.y += (0 - knightMesh.rightArm.rotation.y) * k;
+                        knightMesh.rightArm.rotation.z += (0 - knightMesh.rightArm.rotation.z) * k;
+                        knightMesh.leftArm.rotation.x += ((-0.25) - knightMesh.leftArm.rotation.x) * k;
+                        knightMesh.body.rotation.y += (0 - knightMesh.body.rotation.y) * k;
+                    }
+                    slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
+
+                    if (player.attackTimer <= 0) {
+                        player.state = 'RECOVERY';
+                        player.recoveryFrom = isHeavy ? 'HEAVY' : 'LIGHT';
+                        // 弓後搖極短
+                        player.recoveryTimer = isHeavy ? 0.18 : 0.1;
+                        playerGroup.position.y = 0;
+                        targetFov = 58;
+                    }
+                    return;
+                }
+
                 // 三段時間軸：前搖(0-0.28) → 揮擊(0.28-0.62) → 收招(0.62-1)
                 const wind = Math.min(1, progress / 0.28);
                 const swingT = progress < 0.28 ? 0 : Math.min(1, (progress - 0.28) / 0.34);
@@ -2990,13 +3375,19 @@
 
                 // 命中落在揮擊中段（動畫出來後）
                 const hitGate = player.attackType === 'HEAVY' ? 0.52 : 0.40;
-                if (!player.attackHitDone && progress > hitGate && progress < 0.72) checkPlayerHitbox();
+                if (!player.attackHitDone && progress > hitGate && progress < 0.72) {
+                    if ((selectedWeapon && selectedWeapon.skillStyle) === 'bow') {
+                        // 弓已在專用模組放箭，此處略過
+                    } else {
+                        checkPlayerHitbox();
+                    }
+                }
 
                 if (player.attackTimer <= 0) {
                     player.state = 'RECOVERY';
                     player.recoveryFrom = player.attackType === 'HEAVY' ? 'HEAVY' : 'LIGHT';
                     const rMul = (selectedWeapon && selectedWeapon.recoveryMul) || 1;
-                    player.recoveryTimer = (player.attackType === 'HEAVY' ? 0.55 : (player.comboStep === 3 ? 0.48 : 0.34)) * rMul;
+                    player.recoveryTimer = (player.attackType === 'HEAVY' ? 0.42 : (player.comboStep === 3 ? 0.36 : 0.24)) * rMul;
                     slashArcMat.opacity = 0; slashArc2Mat.opacity = 0;
                     playerGroup.position.y = 0;
                     targetFov = 60;
@@ -3006,10 +3397,12 @@
 
             // —— 物理移動：加速度 + 摩擦（不再瞬間滑行）——
             const moveVec = getMovementVector();
-            const maxSp = player.isBlocking ? PHYS.maxSpeedBlock : PHYS.maxSpeed;
+            const boostMul = player.speedBoostTimer > 0 ? 1.55 : 1;
+            const maxSp = (player.isBlocking ? PHYS.maxSpeedBlock : PHYS.maxSpeed) * boostMul;
+            const accelMul = player.speedBoostTimer > 0 ? 1.35 : 1;
             if (moveVec.lengthSq() > 0 && player.state !== 'ATTACK' && !player.state.startsWith('SKILL') && player.state !== 'DRINK') {
-                player.moveVel.x += moveVec.x * PHYS.accel * dt;
-                player.moveVel.z += moveVec.z * PHYS.accel * dt;
+                player.moveVel.x += moveVec.x * PHYS.accel * accelMul * dt;
+                player.moveVel.z += moveVec.z * PHYS.accel * accelMul * dt;
                 if (!player.lockOn) {
                     const targetAngle = Math.atan2(moveVec.x, moveVec.z);
                     // 速度越快轉身略慢，更有重量感
@@ -3145,23 +3538,118 @@
         }
 
         /* --- 7. Boss 動作與 AI（更多技能 + 更高攻擊頻率） --- */
-                function enterBossPhase2() {
-            if (boss.phase >= 2 || boss.phaseAnnounced) return;
-            boss.phase = 2;
-            boss.phaseAnnounced = true;
-            boss.dmgMul = (boss.dmgMul || 1) * 1.15;
-            boss.speedMul = (boss.speedMul || 1) * 1.2;
-            boss.attackCdMul = Math.max(0.35, (boss.attackCdMul || 1) * 0.7);
-            createDamageNumber('二階段！', boss.pos.clone().add(new THREE.Vector3(0, 6, 0)), 'CRIT');
-            createAOEShockwave(boss.pos.clone(), 2.2, 0xff4400, 55);
-            createDirectionalSparks(boss.pos.clone().add(new THREE.Vector3(0, 4, 0)), 90, 0xff2200, new THREE.Vector3(0, 1, 0), 28);
-            triggerCameraShake(1.2);
+        function enhanceBossPhase2Model() {
+            if (!bossModel || !bossModel.group) return;
+            const arch = boss.archetype || 'abyss';
+            // 體型壓迫感
+            const sc = arch === 'abyss' ? 1.28 : 1.35;
+            bossModel.group.scale.multiplyScalar(sc);
+            // 發光核心加強
             if (bossModel.coreMesh && bossModel.coreMesh.material) {
-                bossModel.coreMesh.material.emissiveIntensity = 2.2;
+                bossModel.coreMesh.material.emissiveIntensity = 3.5;
+                if (bossModel.coreMesh.material.emissive) {
+                    if (arch === 'fire') bossModel.coreMesh.material.emissive.setHex(0xff2200);
+                    else if (arch === 'thunder') bossModel.coreMesh.material.emissive.setHex(0x88aaff);
+                    else bossModel.coreMesh.material.emissive.setHex(0xaa22ff);
+                }
             }
-            // 短暫硬直後開始狂暴
+            // 附加二階段外觀零件
+            const auraCol = arch === 'fire' ? 0xff4400 : (arch === 'thunder' ? 0x66aaff : 0x8822ff);
+            if (!bossModel.phase2Aura) {
+                const aura = new THREE.Group();
+                // 環繞混沌環
+                for (let i = 0; i < 3; i++) {
+                    const ring = new THREE.Mesh(
+                        new THREE.TorusGeometry(4.5 + i * 0.8, 0.12, 8, 32),
+                        new THREE.MeshBasicMaterial({ color: auraCol, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending })
+                    );
+                    ring.rotation.x = Math.PI / 2 + i * 0.4;
+                    ring.rotation.y = i * 0.7;
+                    aura.add(ring);
+                }
+                // 尖刺／能量碎片
+                for (let i = 0; i < 10; i++) {
+                    const a = (i / 10) * Math.PI * 2;
+                    const spike = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.25, 1.8, 5),
+                        new THREE.MeshStandardMaterial({ color: auraCol, emissive: auraCol, emissiveIntensity: 0.8, metalness: 0.5, roughness: 0.3 })
+                    );
+                    spike.position.set(Math.cos(a) * 3.8, 4 + Math.sin(a * 2) * 0.5, Math.sin(a) * 3.8);
+                    spike.lookAt(0, 4, 0);
+                    aura.add(spike);
+                }
+                // 頭頂冠
+                const crown = new THREE.Mesh(
+                    new THREE.ConeGeometry(1.2, 2.5, 6),
+                    new THREE.MeshStandardMaterial({ color: auraCol, emissive: auraCol, emissiveIntensity: 1.2, metalness: 0.6, roughness: 0.25 })
+                );
+                crown.position.set(0, 9.5, 0);
+                aura.add(crown);
+                bossModel.group.add(aura);
+                bossModel.phase2Aura = aura;
+            }
+            // 點光
+            if (!bossModel.phase2Light) {
+                const pl = new THREE.PointLight(auraCol, 4.5, 35);
+                pl.position.set(0, 5, 0);
+                bossModel.group.add(pl);
+                bossModel.phase2Light = pl;
+            }
+        }
+
+        function enterBossPhase2() {
+            if (boss.phase >= 2 || boss.phaseAnnounced) return;
+            boss.phaseAnnounced = true;
+            // 進入破繭過場（不立即 phase=2 出招，等動畫結束）
+            boss.state = 'PHASE_TRANS';
+            boss.timer = 3.2;
+            boss._phaseTransT = 0;
+            boss._phaseTransDone = false;
+            clearBossTelegraph();
+            // 暫停對玩家傷害感：短暫給玩家呼吸
+            setPlayerIframe(1.2);
+            triggerCameraShake(0.8);
+            createDamageNumber('二階段覺醒…', boss.pos.clone().add(new THREE.Vector3(0, 7, 0)), 'CRIT');
+
+            // 混沌球繭
+            const arch = boss.archetype || 'abyss';
+            const col = arch === 'fire' ? 0xff3300 : (arch === 'thunder' ? 0x66aaff : 0x7722ff);
+            const cocoon = new THREE.Mesh(
+                new THREE.SphereGeometry(5.5, 24, 20),
+                new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })
+            );
+            cocoon.position.copy(boss.pos); cocoon.position.y = 4;
+            scene.add(cocoon);
+            const cocoonShell = new THREE.Mesh(
+                new THREE.SphereGeometry(6.2, 20, 16),
+                new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, wireframe: true })
+            );
+            cocoon.add(cocoonShell);
+            boss._cocoon = cocoon;
+            // 隱藏本體於繭內感
+            if (bossModel.group) bossModel.group.visible = false;
+            createAOEShockwave(boss.pos.clone(), 2.5, col, 40);
+            createDirectionalSparks(boss.pos.clone().add(new THREE.Vector3(0, 4, 0)), 80, col, new THREE.Vector3(0, 1, 0), 22);
+        }
+
+        function finishBossPhase2() {
+            boss.phase = 2;
+            boss.dmgMul = (boss.dmgMul || 1) * 1.25;
+            boss.speedMul = (boss.speedMul || 1) * 1.28;
+            boss.attackCdMul = Math.max(0.28, (boss.attackCdMul || 1) * 0.62);
+            enhanceBossPhase2Model();
+            if (bossModel.group) bossModel.group.visible = true;
+            if (boss._cocoon) {
+                scene.remove(boss._cocoon);
+                boss._cocoon = null;
+            }
+            createDamageNumber('二階段！', boss.pos.clone().add(new THREE.Vector3(0, 7, 0)), 'CRIT');
+            createAOEShockwave(boss.pos.clone(), 3.5, 0xff4400, 70);
+            createDirectionalSparks(boss.pos.clone().add(new THREE.Vector3(0, 4, 0)), 120, 0xffee88, new THREE.Vector3(0, 1, 0), 30);
+            triggerCameraShake(1.5);
+            hitstopTimer = Math.max(hitstopTimer, 0.25);
             boss.state = 'IDLE';
-            boss.timer = 1.1;
+            boss.timer = 0.9;
             clearBossTelegraph();
         }
 
@@ -3697,10 +4185,16 @@
 
             // 待機微動
             if (boss.state !== 'STAGGERED' && boss.state !== 'ATTACKING' && boss.state !== 'WINDUP') {
-                if (!(isDragonBoss() && (boss.state === 'WINDUP' || boss.state === 'ATTACKING'))) {
+                if (!(isDragonBoss() && (boss.state === 'WINDUP' || boss.state === 'ATTACKING')) && boss.state !== 'PHASE_TRANS') {
                     bossModel.group.position.y = THREE.MathUtils.lerp(bossModel.group.position.y, Math.sin(now * 2.2) * 0.22, 0.15);
                 }
                 if (bossModel.headGroup) bossModel.headGroup.rotation.y = Math.sin(now * 1.4) * 0.12;
+                if (boss.phase >= 2 && bossModel.phase2Aura) {
+                    bossModel.phase2Aura.rotation.y += dt * 1.2;
+                    bossModel.phase2Aura.children.forEach((c, i) => {
+                        if (c.geometry && c.geometry.type === 'TorusGeometry') c.rotation.z += dt * (0.8 + i * 0.3);
+                    });
+                }
             }
             if (boss.state !== 'PURSUE' && boss.state !== 'CIRCLING' && bossModel.legL) {
                 bossModel.legL.rotation.x *= Math.exp(-6 * dt);
@@ -3713,6 +4207,47 @@
             if (boss.hp < boss.maxHp * 0.5 && boss.phase < 2) enterBossPhase2();
 
             switch (boss.state) {
+                case 'PHASE_TRANS': {
+                    boss.timer -= dt;
+                    boss._phaseTransT = (boss._phaseTransT || 0) + dt;
+                    const t = boss._phaseTransT;
+                    const cocoon = boss._cocoon;
+                    if (cocoon) {
+                        cocoon.position.copy(boss.pos); cocoon.position.y = 4 + Math.sin(t * 4) * 0.3;
+                        const pulse = 1 + Math.sin(t * 8) * 0.08 + t * 0.12;
+                        cocoon.scale.set(pulse, pulse, pulse);
+                        cocoon.rotation.y += dt * 2.5;
+                        if (cocoon.material) cocoon.material.opacity = 0.35 + Math.sin(t * 6) * 0.25;
+                        if (Math.random() < 0.5) {
+                            const arch = boss.archetype || 'abyss';
+                            const col = arch === 'fire' ? 0xff4400 : (arch === 'thunder' ? 0x88ccff : 0xaa44ff);
+                            createDirectionalSparks(cocoon.position.clone(), 6, col, new THREE.Vector3(0, 1, 0), 12);
+                        }
+                        // 破繭爆發
+                        if (t > 2.4 && !boss._phaseTransDone) {
+                            boss._phaseTransDone = true;
+                            // 碎片
+                            for (let i = 0; i < 16; i++) {
+                                const a = (i / 16) * Math.PI * 2;
+                                const shard = new THREE.Mesh(
+                                    new THREE.TetrahedronGeometry(0.6, 0),
+                                    new THREE.MeshBasicMaterial({ color: 0xffeecc, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending })
+                                );
+                                shard.position.copy(cocoon.position);
+                                scene.add(shard);
+                                boss.projectiles.push({
+                                    mesh: shard,
+                                    velocity: new THREE.Vector3(Math.cos(a) * 18, 8 + Math.random() * 10, Math.sin(a) * 18),
+                                    life: 1.2, damage: 0, type: 'CAST_HALO'
+                                });
+                            }
+                        }
+                    }
+                    if (boss.timer <= 0) {
+                        finishBossPhase2();
+                    }
+                    break;
+                }
                 case 'STUNNED':
                     boss.timer -= dt;
                     bossModel.group.rotation.z = Math.sin(now * 12) * 0.08;
@@ -3771,7 +4306,7 @@
                         bossPhys.moveVel.x += toP.x * 22 * dt;
                         bossPhys.moveVel.z += toP.z * 22 * dt;
                         const bsp = Math.hypot(bossPhys.moveVel.x, bossPhys.moveVel.z);
-                        const bmax = 5.5 * (boss.speedMul || 1);
+                        const bmax = 6.4 * (boss.speedMul || 1);
                         if (bsp > bmax) { bossPhys.moveVel.x *= bmax / bsp; bossPhys.moveVel.z *= bmax / bsp; }
                         boss.pos.x += bossPhys.moveVel.x * dt;
                         boss.pos.z += bossPhys.moveVel.z * dt;
@@ -4175,7 +4710,7 @@
 
         function updateCamera(dt) {
             // 速度感 FOV + 平滑回彈（限制突變幅度）
-            const spdFov = 58 + walkIntensitySafe() * 2.5;
+            const spdFov = 58 + walkIntensitySafe() * 2.5 + (player.speedBoostTimer > 0 ? 3 : 0);
             targetFov += (58 - targetFov) * (1 - Math.exp(-2.2 * dt));
             // 限制 targetFov 範圍，避免技能狂踢 FOV
             targetFov = THREE.MathUtils.clamp(targetFov, 48, 68);
@@ -4335,6 +4870,8 @@
         }
 
         function updateUI() {
+            const fc = document.getElementById('flask-count');
+            if (fc) fc.innerText = String(player.flasks);
             document.getElementById('player-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
             document.getElementById('player-stamina-bar').style.width = `${(player.stamina / player.maxStamina) * 100}%`;
             document.getElementById('boss-hp-bar').style.width = `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`;
@@ -4345,9 +4882,9 @@
             const qName = document.getElementById('q-slot-name');
             const eName = document.getElementById('e-slot-name');
             const sName = document.getElementById('shift-slot-name');
-            if (qName) qName.textContent = wpn.skillStyle === 'katana' ? '見切' : (wpn.skillStyle === 'dagger' ? '割喉' : (wpn.skillStyle === 'greatsword' ? '震盪' : '劍氣'));
-            if (eName) eName.textContent = wpn.skillStyle === 'katana' ? '登龍' : (wpn.skillStyle === 'dagger' ? '分身' : (wpn.skillStyle === 'greatsword' ? '重踏' : '突進'));
-            if (sName) sName.textContent = wpn.shiftMode === 'iai' ? '防反' : (wpn.shiftMode === 'scoop' ? '上撈' : (wpn.shiftMode === 'flash' ? '雷閃' : '彈反'));
+            if (qName) qName.textContent = wpn.skillStyle === 'katana' ? '見切' : (wpn.skillStyle === 'dagger' ? '割喉' : (wpn.skillStyle === 'greatsword' ? '突刺' : (wpn.skillStyle === 'bow' ? '三連射' : '劍氣')));
+            if (eName) eName.textContent = wpn.skillStyle === 'katana' ? '登龍' : (wpn.skillStyle === 'dagger' ? '分身' : (wpn.skillStyle === 'greatsword' ? '跳斬' : (wpn.skillStyle === 'bow' ? '後空翻射' : '突進')));
+            if (sName) sName.textContent = wpn.shiftMode === 'iai' ? '防反' : (wpn.shiftMode === 'scoop' ? '上撈' : (wpn.shiftMode === 'flash' ? '雷閃' : (wpn.shiftMode === 'trap' ? '陷阱' : '彈反')));
 
             function setSlotCd(fillId, textId, slotId, cd, max) {
                 const fill = document.getElementById(fillId);
@@ -4404,7 +4941,8 @@
             }
             if (gameStarted) {
                 updatePlayer(dt); 
-                updateBoss(dt); 
+                updateBoss(dt);
+            updateArrowsAndTraps(dt); 
             }
             updateFX(dt); 
             updateCamera(dt); 
